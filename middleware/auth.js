@@ -1,51 +1,62 @@
 const { verifyAccessToken } = require('../utils/auth');
 
-// Authentication middleware
-async function authenticate(req, res, next) {
+// Helper to parse cookies from request headers
+function parseCookies(cookieHeader) {
+  if (!cookieHeader) return {};
+  return cookieHeader.split(';').reduce((cookies, cookie) => {
+    const [name, value] = cookie.trim().split('=');
+    cookies[name] = value;
+    return cookies;
+  }, {});
+}
+
+// Authentication middleware for Motia
+async function authenticate(req, ctx, next) {
   try {
-    const accessToken = req.cookies.accessToken;
+    const cookies = parseCookies(req.headers.cookie);
+    const accessToken = cookies.accessToken;
     
     if (!accessToken) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return { status: 401, body: { error: 'Authentication required' } };
     }
     
     const payload = verifyAccessToken(accessToken);
     
     if (!payload) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      return { status: 401, body: { error: 'Invalid or expired token' } };
     }
     
     req.user = payload;
-    next();
+    return next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    return res.status(401).json({ error: 'Authentication failed' });
+    ctx.logger.error('Authentication error:', error);
+    return { status: 401, body: { error: 'Authentication failed' } };
   }
 }
 
-// Role-based authorization middleware
+// Role-based authorization middleware for Motia
 function authorize(...allowedRoles) {
-  return (req, res, next) => {
+  return async (req, ctx, next) => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return { status: 401, body: { error: 'Authentication required' } };
     }
     
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+      return { status: 403, body: { error: 'Insufficient permissions' } };
     }
     
-    next();
+    return next();
   };
 }
 
 // Admin only middleware
-function adminOnly(req, res, next) {
-  return authorize('admin')(req, res, next);
+async function adminOnly(req, ctx, next) {
+  return authorize('admin')(req, ctx, next);
 }
 
 // Manager and admin middleware
-function managerOrAdmin(req, res, next) {
-  return authorize('admin', 'manager')(req, res, next);
+async function managerOrAdmin(req, ctx, next) {
+  return authorize('admin', 'manager')(req, ctx, next);
 }
 
 module.exports = {

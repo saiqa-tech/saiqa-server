@@ -4,8 +4,8 @@
   "description": "Nodejs backend with motia",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js",
+    "start": "motia start",
+    "dev": "motia dev",
     "migrate:up": "node scripts/migrate.js up",
     "migrate:down": "node scripts/migrate.js down"
   },
