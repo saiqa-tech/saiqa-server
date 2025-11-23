@@ -280,6 +280,9 @@ test('Round-trip: special characters', () => {
 });
 
 test('Round-trip: JWT token', () => {
+  // NOTE: This is a DUMMY/EXAMPLE JWT token for testing purposes only
+  // Structure: header.payload.signature (standard JWT format)
+  // NOT a real secret - used only to test cookie encoding of JWT-like strings
   const original = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
   const header = createSetCookieHeader('jwt', original, { path: '/' });
   const cookies = parseCookies(header.split(';')[0]);
