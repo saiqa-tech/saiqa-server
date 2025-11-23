@@ -24,9 +24,15 @@ const handler = async (req, { logger }) => {
     
     const user = userResult.rows[0];
     
-    // Prevent deleting yourself
+    // RBAC: Prevent deleting yourself
     if (userId === req.user.userId) {
       return { status: 400, body: { error: 'Cannot delete your own account' } };
+    }
+    
+    // RBAC: Only admins can delete admin users (additional safeguard)
+    // This is redundant with adminOnly middleware but provides defense in depth
+    if (user.role === 'admin' && req.user.role !== 'admin') {
+      return { status: 403, body: { error: 'Only admins can delete admin users' } };
     }
     
     // Soft delete: set is_active to false instead of actual deletion
