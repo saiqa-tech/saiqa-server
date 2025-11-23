@@ -7,7 +7,9 @@
     "start": "motia start",
     "dev": "motia dev",
     "migrate:up": "node scripts/migrate.js up",
-    "migrate:down": "node scripts/migrate.js down"
+    "migrate:down": "node scripts/migrate.js down",
+    "verify:migrations": "node scripts/verify-migrations.js",
+    "test:cookies": "node tests/cookie-utils.test.js"
   },
   "keywords": [],
   "author": "",

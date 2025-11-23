@@ -45,10 +45,23 @@ const handler = async (req, { logger }) => {
     
     const currentUser = currentUserResult.rows[0];
     
-    // Only admins can change user roles or update other admins
-    if ((role && role !== currentUser.role) || currentUser.role === 'admin') {
+    // RBAC: Prevent privilege escalation
+    // Admins can update anyone (including other admins)
+    // Managers can only update non-admin users (users and managers)
+    // Users cannot update others (handled by managerOrAdmin middleware)
+    if (req.user.role !== 'admin' && currentUser.role === 'admin') {
+      return { status: 403, body: { error: 'Only admins can update admin users' } };
+    }
+    
+    // RBAC: Only admins can change roles
+    if (role && role !== currentUser.role) {
       if (req.user.role !== 'admin') {
-        return { status: 403, body: { error: 'Only admins can change roles or update admin users' } };
+        return { status: 403, body: { error: 'Only admins can change user roles' } };
+      }
+      
+      // RBAC: Prevent managers from being promoted to admin by other managers
+      if (role === 'admin' && req.user.role !== 'admin') {
+        return { status: 403, body: { error: 'Only admins can grant admin privileges' } };
       }
     }
     
