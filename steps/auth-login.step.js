@@ -6,19 +6,10 @@ const {
   comparePassword,
   getCookieOptions
 } = require('../utils/auth');
+const { createSetCookieHeader } = require('../utils/cookies');
+const { getClientIP } = require('../utils/request');
 const { logAudit, getRequestInfo } = require('../utils/audit');
 const { logActivity } = require('../utils/logger');
-
-// Helper function to serialize cookie options to string
-function serializeCookieOptions(options) {
-  const parts = [];
-  if (options.httpOnly) parts.push('HttpOnly');
-  if (options.secure) parts.push('Secure');
-  if (options.sameSite) parts.push(`SameSite=${options.sameSite}`);
-  if (options.maxAge) parts.push(`Max-Age=${Math.floor(options.maxAge / 1000)}`);
-  if (options.path) parts.push(`Path=${options.path}`);
-  return parts.join('; ');
-}
 
 const config = {
   name: 'AuthLogin',
@@ -41,7 +32,7 @@ const handler = async (req, { logger }) => {
     );
     
     if (result.rows.length === 0) {
-      logActivity.security('LOGIN_FAILED', { email, reason: 'User not found', ip: req.headers['x-forwarded-for'] || 'unknown' });
+      logActivity.security('LOGIN_FAILED', { email, reason: 'User not found', ip: getClientIP(req) });
       return { status: 401, body: { error: 'Invalid credentials' } };
     }
     
@@ -49,7 +40,7 @@ const handler = async (req, { logger }) => {
     const isValidPassword = await comparePassword(password, user.password_hash);
     
     if (!isValidPassword) {
-      logActivity.security('LOGIN_FAILED', { email, userId: user.id, reason: 'Invalid password', ip: req.headers['x-forwarded-for'] || 'unknown' });
+      logActivity.security('LOGIN_FAILED', { email, userId: user.id, reason: 'Invalid password', ip: getClientIP(req) });
       return { status: 401, body: { error: 'Invalid credentials' } };
     }
     
@@ -102,8 +93,8 @@ const handler = async (req, { logger }) => {
       },
       headers: {
         'Set-Cookie': [
-          `accessToken=${accessToken}; ${serializeCookieOptions(cookieOptions)}`,
-          `refreshToken=${refreshToken}; ${serializeCookieOptions(refreshCookieOptions)}`
+          createSetCookieHeader('accessToken', accessToken, cookieOptions),
+          createSetCookieHeader('refreshToken', refreshToken, refreshCookieOptions)
         ]
       }
     };

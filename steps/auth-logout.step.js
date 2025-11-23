@@ -1,17 +1,8 @@
 const { query } = require('../config/database');
 const { hashToken } = require('../utils/auth');
+const { parseCookies } = require('../utils/cookies');
 const { logAudit, getRequestInfo } = require('../utils/audit');
 const { logActivity } = require('../utils/logger');
-
-// Helper to parse cookies
-function parseCookies(cookieHeader) {
-  if (!cookieHeader) return {};
-  return cookieHeader.split(';').reduce((cookies, cookie) => {
-    const [name, value] = cookie.trim().split('=');
-    cookies[name] = value;
-    return cookies;
-  }, {});
-}
 
 const config = {
   name: 'AuthLogout',

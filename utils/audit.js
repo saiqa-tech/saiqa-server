@@ -1,4 +1,5 @@
 const { query } = require('../config/database');
+const { getClientIP, getUserAgent } = require('./request');
 
 async function logAudit(data) {
   const {
@@ -25,8 +26,8 @@ async function logAudit(data) {
 
 function getRequestInfo(req) {
   return {
-    ipAddress: req.ip || req.connection.remoteAddress,
-    userAgent: req.get('user-agent')
+    ipAddress: getClientIP(req),
+    userAgent: getUserAgent(req)
   };
 }
 

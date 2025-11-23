@@ -1,14 +1,5 @@
 const { verifyAccessToken } = require('../utils/auth');
-
-// Helper to parse cookies from request headers
-function parseCookies(cookieHeader) {
-  if (!cookieHeader) return {};
-  return cookieHeader.split(';').reduce((cookies, cookie) => {
-    const [name, value] = cookie.trim().split('=');
-    cookies[name] = value;
-    return cookies;
-  }, {});
-}
+const { parseCookies } = require('../utils/cookies');
 
 // Authentication middleware for Motia
 async function authenticate(req, ctx, next) {

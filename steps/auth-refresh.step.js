@@ -1,26 +1,6 @@
 const { query } = require('../config/database');
 const { verifyRefreshToken, generateAccessToken, hashToken, getCookieOptions } = require('../utils/auth');
-
-// Helper to parse cookies
-function parseCookies(cookieHeader) {
-  if (!cookieHeader) return {};
-  return cookieHeader.split(';').reduce((cookies, cookie) => {
-    const [name, value] = cookie.trim().split('=');
-    cookies[name] = value;
-    return cookies;
-  }, {});
-}
-
-// Helper to serialize cookie options
-function serializeCookieOptions(options) {
-  const parts = [];
-  if (options.httpOnly) parts.push('HttpOnly');
-  if (options.secure) parts.push('Secure');
-  if (options.sameSite) parts.push(`SameSite=${options.sameSite}`);
-  if (options.maxAge) parts.push(`Max-Age=${Math.floor(options.maxAge / 1000)}`);
-  if (options.path) parts.push(`Path=${options.path}`);
-  return parts.join('; ');
-}
+const { parseCookies, createSetCookieHeader } = require('../utils/cookies');
 
 const config = {
   name: 'AuthRefresh',
@@ -83,7 +63,7 @@ const handler = async (req, { logger }) => {
         requiresPasswordChange: user.force_password_change
       },
       headers: {
-        'Set-Cookie': `accessToken=${newAccessToken}; ${serializeCookieOptions(cookieOptions)}`
+        'Set-Cookie': createSetCookieHeader('accessToken', newAccessToken, cookieOptions)
       }
     };
   } catch (error) {
