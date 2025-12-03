@@ -5,6 +5,7 @@ const { logActivity } = require('../utils/logger');
 const { authenticate } = require('../middleware/auth');
 
 const config = {
+  emits: [],
   name: 'AuthChangePassword',
   type: 'api',
   path: '/api/auth/change-password',

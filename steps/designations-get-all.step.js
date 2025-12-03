@@ -2,6 +2,7 @@ const { query } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 
 const config = {
+  emits: [],
   name: 'DesignationsGetAll',
   type: 'api',
   path: '/api/designations',

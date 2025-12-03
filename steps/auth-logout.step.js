@@ -5,6 +5,7 @@ const { logAudit, getRequestInfo } = require('../utils/audit');
 const { logActivity } = require('../utils/logger');
 
 const config = {
+  emits: [],
   name: 'AuthLogout',
   type: 'api',
   path: '/api/auth/logout',

@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: true
+tone_instructions: >-
+  Review as an assertive, constructive Node.js/Motia/PostgreSQL expert. Focus on
+  SQL performance, security (JWT/Cookies), business logic, and migration safety.
+  Provide concise, actionable feedback with GitHub suggestion blocks for small fixes.
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true
+  high_level_summary: true
+  high_level_summary_instructions: |
+    Provide 2-3 bullet release notes that capture customer-visible behavior,
+    highlight notable risks, and note which tiers are impacted (API, PostgreSQL, Auth)
+    when relevant.
+  review_status: true
+  commit_status: true
+  fail_commit_status: true
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true
+  estimate_code_review_effort: true
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: true
+  suggested_reviewers: true
+  auto_assign_reviewers: false
+  in_progress_fortune: false
+  poem: false
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/coverage/**"
+    - "!**/*.lock"
+    - "!**/*.log"
+    - "!**/*.test.js"
+  path_instructions:
+    - path: "steps/**"
+      instructions: |
+        Review Motia step definitions for correct 'config' (path, method, type) and
+        'handler' implementation. Ensure SQL queries use parameterized inputs to
+        prevent injection. Verify proper error handling and status codes.
+        Check for correct usage of 'logger' and 'logActivity'.
+    - path: "utils/auth.js"
+      instructions: |
+        Scrutinize token generation and validation logic. Ensure secrets are not
+        hardcoded. Verify password hashing uses bcrypt with appropriate work factors.
+    - path: "utils/cookies.js"
+      instructions: |
+        Ensure cookie options (HttpOnly, Secure, SameSite) are correctly set for
+        security.
+    - path: "scripts/**"
+      instructions: |
+        Review database migration scripts for reversibility and safety. Ensure
+        migrations are idempotent where possible and do not lock tables for excessive periods.
+    - path: "config/**"
+      instructions: |
+        Verify that configuration changes are safe and secrets are loaded from
+        environment variables.
+    - path: "motia.config.js"
+      instructions: |
+        Check for CORS configuration and server settings. Ensure no sensitive
+        defaults are exposed.
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    base_branches:
+      - "main"
+      - "develop"
+      - "release/*"
+      - "hotfix/*"
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+    labels:
+      - "needs-ai-review"
+  pre_merge_checks:
+    docstrings:
+      mode: "warning"
+      threshold: 70
+    title:
+      mode: "warning"
+      requirements: "Begin with the Jira ticket (e.g., SAIQA-123) and use an imperative summary under 65 characters."
+    description:
+      mode: "error"
+    issue_assessment:
+      mode: "warning"
+    custom_checks:
+      - name: "CI status gate"
+        mode: "error"
+        instructions: |
+          Ensure GitHub checks `ci/lint` and `ci/test` (or their workflow aliases)
+          have succeeded before approval. Block the PR if any required status is
+          pending or failed.
+      - name: "Security posture"
+        mode: "warning"
+        instructions: |
+          Flag missing authentication, authorization, input validation, or SQL
+          injection risks in new steps or queries.
+      - name: "Observability completeness"
+        mode: "warning"
+        instructions: |
+          Require new steps to include audit logging (`logAudit`) and activity
+          logging (`logActivity`) where appropriate.
+  tools:
+    github-checks:
+      enabled: true
+    markdownlint:
+      enabled: true
+chat:
+  auto_reply: true

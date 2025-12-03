@@ -2,6 +2,7 @@ const { query } = require('../config/database');
 const { authenticate, managerOrAdmin } = require('../middleware/auth');
 
 const config = {
+  emits: [],
   name: 'UsersGetAll',
   type: 'api',
   path: '/api/users',

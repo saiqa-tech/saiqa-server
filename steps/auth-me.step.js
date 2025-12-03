@@ -2,6 +2,7 @@ const { query } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 
 const config = {
+  emits: [],
   name: 'AuthGetCurrentUser',
   type: 'api',
   path: '/api/auth/me',
@@ -21,17 +22,29 @@ const handler = async (req, { logger }) => {
        WHERE u.id = $1`,
       [req.user.userId]
     );
-    
+
     if (result.rows.length === 0) {
-      return { status: 404, body: { error: 'User not found' } };
+      return { 
+        status: 404, 
+        body: { error: 'User not found' }
+      };
     }
-    
+
     const { password_hash, ...user } = result.rows[0];
-    
-    return { status: 200, body: { user } };
+
+    return {
+      status: 200,
+      body: {
+        user,
+        expiresAt: req.user.exp * 1000
+      }
+    };
   } catch (error) {
     logger.error('Get current user error:', error);
-    return { status: 500, body: { error: 'Internal server error' } };
+    return { 
+      status: 500, 
+      body: { error: 'Internal server error' }
+    };
   }
 };
 

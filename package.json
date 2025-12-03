@@ -4,8 +4,8 @@
   "description": "Nodejs backend with motia",
   "main": "index.js",
   "scripts": {
-    "start": "motia start",
-    "dev": "motia dev",
+    "start": "motia start --port 3002",
+    "dev": "motia dev --port 3002",
     "migrate:up": "node scripts/migrate.js up",
     "migrate:down": "node scripts/migrate.js down",
     "verify:migrations": "node scripts/verify-migrations.js",
