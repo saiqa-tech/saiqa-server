@@ -218,33 +218,33 @@ When adding a new endpoint, follow this checklist:
 
 ```bash
 # 1. Login as admin
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@saiqa.dev","password":"Admin@123"}' \
   -c admin-cookies.txt
 
 # 2. Login as manager (if exists)
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"manager@example.com","password":"ManagerPass"}' \
   -c manager-cookies.txt
 
 # 3. Try manager accessing admin-only endpoint (should fail)
-curl -X POST http://localhost:3000/api/users \
+curl -X POST http://localhost:3002/api/users \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"Test@123","firstName":"Test","lastName":"User","role":"user"}' \
   -b manager-cookies.txt
 # Expected: 403 Forbidden
 
 # 4. Try manager updating admin user (should fail)
-curl -X PUT http://localhost:3000/api/users/ADMIN_USER_ID \
+curl -X PUT http://localhost:3002/api/users/ADMIN_USER_ID \
   -H "Content-Type: application/json" \
   -d '{"firstName":"Hacked"}' \
   -b manager-cookies.txt
 # Expected: 403 Forbidden
 
 # 5. Try manager changing user role (should fail)
-curl -X PUT http://localhost:3000/api/users/USER_ID \
+curl -X PUT http://localhost:3002/api/users/USER_ID \
   -H "Content-Type: application/json" \
   -d '{"role":"admin"}' \
   -b manager-cookies.txt

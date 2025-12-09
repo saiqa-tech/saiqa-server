@@ -4,6 +4,7 @@ const { logActivity } = require('../utils/logger');
 const { authenticate, managerOrAdmin } = require('../middleware/auth');
 
 const config = {
+  emits: [],
   name: 'DesignationsDelete',
   type: 'api',
   path: '/api/designations/:id',

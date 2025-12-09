@@ -114,48 +114,48 @@
 ```bash
 cd saiqa-server
 npm run dev
-# Server runs on http://localhost:3000
+# Server runs on http://localhost:3002
 ```
 
 ### Quick Test Suite
 
 #### 1. Health Check
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3002/health
 # Expected: {"status": "ok", "timestamp": "..."}
 ```
 
 #### 2. Authentication Flow
 ```bash
 # Login
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@saiqa.dev","password":"Admin@123"}' \
   -c cookies.txt -v
 
 # Get current user
-curl http://localhost:3000/api/auth/me -b cookies.txt
+curl http://localhost:3002/api/auth/me -b cookies.txt
 
 # Change password
-curl -X POST http://localhost:3000/api/auth/change-password \
+curl -X POST http://localhost:3002/api/auth/change-password \
   -H "Content-Type: application/json" \
   -d '{"currentPassword":"Admin@123","newPassword":"NewPass@123"}' \
   -b cookies.txt
 
 # Logout
-curl -X POST http://localhost:3000/api/auth/logout -b cookies.txt
+curl -X POST http://localhost:3002/api/auth/logout -b cookies.txt
 ```
 
 #### 3. User Management (Admin Operations)
 ```bash
 # List users with pagination
-curl "http://localhost:3000/api/users?page=1&limit=10" -b cookies.txt
+curl "http://localhost:3002/api/users?page=1&limit=10" -b cookies.txt
 
 # Search users
-curl "http://localhost:3000/api/users?search=admin" -b cookies.txt
+curl "http://localhost:3002/api/users?search=admin" -b cookies.txt
 
 # Create user
-curl -X POST http://localhost:3000/api/users \
+curl -X POST http://localhost:3002/api/users \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -167,16 +167,16 @@ curl -X POST http://localhost:3000/api/users \
   -b cookies.txt
 
 # Update user (replace USER_ID)
-curl -X PUT http://localhost:3000/api/users/USER_ID \
+curl -X PUT http://localhost:3002/api/users/USER_ID \
   -H "Content-Type: application/json" \
   -d '{"firstName": "Updated", "isActive": false}' \
   -b cookies.txt
 
 # Delete user (replace USER_ID)
-curl -X DELETE http://localhost:3000/api/users/USER_ID -b cookies.txt
+curl -X DELETE http://localhost:3002/api/users/USER_ID -b cookies.txt
 
 # Reset password (replace USER_ID)
-curl -X POST http://localhost:3000/api/users/USER_ID/reset-password \
+curl -X POST http://localhost:3002/api/users/USER_ID/reset-password \
   -H "Content-Type: application/json" \
   -d '{"newPassword": "Reset@123"}' \
   -b cookies.txt
@@ -185,10 +185,10 @@ curl -X POST http://localhost:3000/api/users/USER_ID/reset-password \
 #### 4. Units Management
 ```bash
 # List units
-curl "http://localhost:3000/api/units?page=1&limit=10" -b cookies.txt
+curl "http://localhost:3002/api/units?page=1&limit=10" -b cookies.txt
 
 # Create unit
-curl -X POST http://localhost:3000/api/units \
+curl -X POST http://localhost:3002/api/units \
   -H "Content-Type: application/json" \
   -d '{
     "name": "IT Department",
@@ -198,25 +198,25 @@ curl -X POST http://localhost:3000/api/units \
   -b cookies.txt
 
 # Get unit by ID (replace UNIT_ID)
-curl http://localhost:3000/api/units/UNIT_ID -b cookies.txt
+curl http://localhost:3002/api/units/UNIT_ID -b cookies.txt
 
 # Update unit (replace UNIT_ID)
-curl -X PUT http://localhost:3000/api/units/UNIT_ID \
+curl -X PUT http://localhost:3002/api/units/UNIT_ID \
   -H "Content-Type: application/json" \
   -d '{"description": "Updated IT Department"}' \
   -b cookies.txt
 
 # Delete unit (replace UNIT_ID)
-curl -X DELETE http://localhost:3000/api/units/UNIT_ID -b cookies.txt
+curl -X DELETE http://localhost:3002/api/units/UNIT_ID -b cookies.txt
 ```
 
 #### 5. Designations Management
 ```bash
 # List designations
-curl "http://localhost:3000/api/designations?page=1&limit=10" -b cookies.txt
+curl "http://localhost:3002/api/designations?page=1&limit=10" -b cookies.txt
 
 # Create designation
-curl -X POST http://localhost:3000/api/designations \
+curl -X POST http://localhost:3002/api/designations \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Software Engineer",
@@ -226,16 +226,16 @@ curl -X POST http://localhost:3000/api/designations \
   -b cookies.txt
 
 # Get designation by ID (replace DESIGNATION_ID)
-curl http://localhost:3000/api/designations/DESIGNATION_ID -b cookies.txt
+curl http://localhost:3002/api/designations/DESIGNATION_ID -b cookies.txt
 
 # Update designation (replace DESIGNATION_ID)
-curl -X PUT http://localhost:3000/api/designations/DESIGNATION_ID \
+curl -X PUT http://localhost:3002/api/designations/DESIGNATION_ID \
   -H "Content-Type: application/json" \
   -d '{"level": 4}' \
   -b cookies.txt
 
 # Delete designation (replace DESIGNATION_ID)
-curl -X DELETE http://localhost:3000/api/designations/DESIGNATION_ID -b cookies.txt
+curl -X DELETE http://localhost:3002/api/designations/DESIGNATION_ID -b cookies.txt
 ```
 
 ---

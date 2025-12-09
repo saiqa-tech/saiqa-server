@@ -5,14 +5,14 @@
 # 
 # Prerequisites:
 # 1. Database is running and migrated
-# 2. Server is running on http://localhost:3000
+# 2. Server is running on http://localhost:3002
 # 3. Admin user exists: admin@saiqa.dev / Admin@123
 #
 # Usage: bash tests/rbac-manual-test.sh
 
 set -e
 
-BASE_URL="http://localhost:3000/api"
+BASE_URL="http://localhost:3002/api"
 ADMIN_COOKIES="test-admin-cookies.txt"
 MANAGER_COOKIES="test-manager-cookies.txt"
 USER_COOKIES="test-user-cookies.txt"

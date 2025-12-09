@@ -5,6 +5,7 @@ const { logActivity } = require('../utils/logger');
 const { authenticate, adminOnly } = require('../middleware/auth');
 
 const config = {
+  emits: [],
   name: 'UsersResetPassword',
   type: 'api',
   path: '/api/users/:id/reset-password',
