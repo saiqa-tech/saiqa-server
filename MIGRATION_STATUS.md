@@ -3,7 +3,7 @@
 ## ✅ MIGRATION COMPLETE - 100%
 
 **Date Completed:** November 22, 2025
-**Total Endpoints Migrated:** 16/16
+**Total Endpoints Migrated:** 18/18
 
 ## Completed ✅
 
@@ -30,6 +30,8 @@
 - ✅ `steps/users-update.step.js` - PUT /api/users/:id
 - ✅ `steps/users-delete.step.js` - DELETE /api/users/:id
 - ✅ `steps/users-reset-password.step.js` - POST /api/users/:id/reset-password
+- ✅ `steps/users-get-preferences.step.js` - GET /api/users/me/preferences
+- ✅ `steps/users-update-preferences.step.js` - PUT /api/users/me/preferences
 
 ### Unit Steps (5/5) ✅
 - ✅ `steps/units-get-all.step.js` - GET /api/units
@@ -129,34 +131,34 @@ All endpoints are implemented and ready for integration testing:
 
 2. **Run basic health check:**
    ```bash
-   curl http://localhost:3000/health
+   curl http://localhost:3002/health
    ```
 
 3. **Test authentication flow:**
    ```bash
    # Login
-   curl -X POST http://localhost:3000/api/auth/login \
+   curl -X POST http://localhost:3002/api/auth/login \
      -H "Content-Type: application/json" \
      -d '{"email":"admin@saiqa.dev","password":"Admin@123"}' \
      -c cookies.txt
    
    # Get current user
-   curl http://localhost:3000/api/auth/me -b cookies.txt
+   curl http://localhost:3002/api/auth/me -b cookies.txt
    
    # Refresh token
-   curl -X POST http://localhost:3000/api/auth/refresh -b cookies.txt
+   curl -X POST http://localhost:3002/api/auth/refresh -b cookies.txt
    
    # Logout
-   curl -X POST http://localhost:3000/api/auth/logout -b cookies.txt
+   curl -X POST http://localhost:3002/api/auth/logout -b cookies.txt
    ```
 
 4. **Test user management:**
    ```bash
    # List users
-   curl http://localhost:3000/api/users -b cookies.txt
+   curl http://localhost:3002/api/users -b cookies.txt
    
    # Create user (admin only)
-   curl -X POST http://localhost:3000/api/users \
+   curl -X POST http://localhost:3002/api/users \
      -H "Content-Type: application/json" \
      -d '{"email":"test@example.com","password":"Test@123","firstName":"Test","lastName":"User","role":"user"}' \
      -b cookies.txt

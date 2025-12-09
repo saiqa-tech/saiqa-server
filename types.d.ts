@@ -13,7 +13,9 @@ declare module 'motia' {
 
   interface Handlers {
     'UsersUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'UsersUpdatePreferences': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UsersResetPassword': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'UsersGetPreferences': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UsersGetById': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UsersGetAll': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UsersDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>

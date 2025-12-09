@@ -14,6 +14,7 @@ const handler = async (req, ctx) => {
     status: 200,
     body: {
       status: 'ok',
+      version: require('./package.json').version,
       timestamp: new Date().toISOString()
     }
   };

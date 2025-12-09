@@ -68,7 +68,7 @@ npm run verify:migrations
 
 **Prerequisites:**
 - Database running and migrated
-- Server running on `http://localhost:3000`
+- Server running on `http://localhost:3002`
 - Admin user exists: `admin@saiqa.dev` / `Admin@123`
 
 ```bash
@@ -254,17 +254,17 @@ After testing, clean up test users:
 
 ```bash
 # Login as admin
-curl -X POST http://localhost:3000/api/auth/login \
+curl -X POST http://localhost:3002/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@saiqa.dev","password":"Admin@123"}' \
   -c admin-cookies.txt
 
 # Delete test manager
-curl -X DELETE http://localhost:3000/api/users/MANAGER_USER_ID \
+curl -X DELETE http://localhost:3002/api/users/MANAGER_USER_ID \
   -b admin-cookies.txt
 
 # Delete test user
-curl -X DELETE http://localhost:3000/api/users/TEST_USER_ID \
+curl -X DELETE http://localhost:3002/api/users/TEST_USER_ID \
   -b admin-cookies.txt
 
 # Cleanup cookies
