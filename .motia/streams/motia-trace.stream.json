@@ -1,264 +1,4 @@
 {
-  "ZJS63-6172745:e0e0d03a-f2c8-4db7-91c1-da49cc75094f": {
-    "id": "e0e0d03a-f2c8-4db7-91c1-da49cc75094f",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "ZJS63-6172745",
-    "status": "completed",
-    "startTime": 1764666172751,
-    "endTime": 1764666172997,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "F3QYM-8400832:14aac91c-ac1f-4d97-954c-6ab7f3a89d17": {
-    "id": "14aac91c-ac1f-4d97-954c-6ab7f3a89d17",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "F3QYM-8400832",
-    "status": "completed",
-    "startTime": 1764678400839,
-    "endTime": 1764678401324,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "N83YX-9485761:1ecb22d6-712f-416f-bda6-1bf19400b0ad": {
-    "id": "1ecb22d6-712f-416f-bda6-1bf19400b0ad",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "N83YX-9485761",
-    "status": "completed",
-    "startTime": 1764679485763,
-    "endTime": 1764679486306,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "41EKE-9989566:c54ba2b9-d1a4-44fe-83ff-869ca057df3f": {
-    "id": "c54ba2b9-d1a4-44fe-83ff-869ca057df3f",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "41EKE-9989566",
-    "status": "completed",
-    "startTime": 1764679989568,
-    "endTime": 1764679989776,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "AT3VF-6229117:272c9afd-60b2-4b97-8c09-e5cc0dcf1656": {
-    "id": "272c9afd-60b2-4b97-8c09-e5cc0dcf1656",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "AT3VF-6229117",
-    "status": "completed",
-    "startTime": 1764726229118,
-    "endTime": 1764726229277,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "4HDRC-6236866:fca38c76-23ab-4ce4-aede-5a1c8cc7d766": {
-    "id": "fca38c76-23ab-4ce4-aede-5a1c8cc7d766",
-    "name": "AuthLogin",
-    "parentTraceId": "4HDRC-6236866",
-    "status": "completed",
-    "startTime": 1764726236867,
-    "endTime": 1764726237131,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthLogin"
-    },
-    "events": []
-  },
-  "TD1TA-7184550:b001dac5-15d8-4727-93d9-25b624722b4e": {
-    "id": "b001dac5-15d8-4727-93d9-25b624722b4e",
-    "name": "AuthLogout",
-    "parentTraceId": "TD1TA-7184550",
-    "status": "completed",
-    "startTime": 1764727184552,
-    "endTime": 1764727184770,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthLogout"
-    },
-    "events": []
-  },
-  "18RC4-9852623:f040f08a-92d9-448b-b075-07fca08dab37": {
-    "id": "f040f08a-92d9-448b-b075-07fca08dab37",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "18RC4-9852623",
-    "status": "completed",
-    "startTime": 1764729852624,
-    "endTime": 1764729853120,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "PRCEK-9911057:5689a8df-aa9e-4d25-8781-177db03bac87": {
-    "id": "5689a8df-aa9e-4d25-8781-177db03bac87",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "PRCEK-9911057",
-    "status": "completed",
-    "startTime": 1764729911059,
-    "endTime": 1764729911245,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "NM9AE-9911686:3694ccbc-b5ae-4f28-bbc5-8718293c90a5": {
-    "id": "3694ccbc-b5ae-4f28-bbc5-8718293c90a5",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "NM9AE-9911686",
-    "status": "completed",
-    "startTime": 1764729911686,
-    "endTime": 1764729912017,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "2ES6K-9930965:5c93ea02-0b91-4017-801d-4f62cfd8247b": {
-    "id": "5c93ea02-0b91-4017-801d-4f62cfd8247b",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "2ES6K-9930965",
-    "status": "completed",
-    "startTime": 1764729930965,
-    "endTime": 1764729931149,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "XHXB2-2809876:679fa4e2-4426-4b6d-b312-d18938a887bc": {
-    "id": "679fa4e2-4426-4b6d-b312-d18938a887bc",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "XHXB2-2809876",
-    "status": "completed",
-    "startTime": 1764732809877,
-    "endTime": 1764732810062,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "69VVS-2810724:d53aaff4-badf-45a3-9be0-c28817aa10a5": {
-    "id": "d53aaff4-badf-45a3-9be0-c28817aa10a5",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "69VVS-2810724",
-    "status": "completed",
-    "startTime": 1764732810725,
-    "endTime": 1764732810865,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "KFYVN-3014756:5a47c133-df12-4be0-a412-45c36c9da5b8": {
-    "id": "5a47c133-df12-4be0-a412-45c36c9da5b8",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "KFYVN-3014756",
-    "status": "completed",
-    "startTime": 1764733014758,
-    "endTime": 1764733014908,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "B1DEZ-5750613:c3572b65-e3c7-4d5b-8532-1288a5f1048a": {
-    "id": "c3572b65-e3c7-4d5b-8532-1288a5f1048a",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "B1DEZ-5750613",
-    "status": "completed",
-    "startTime": 1764735750615,
-    "endTime": 1764735750821,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "1B5DJ-4562425:ca281df9-34e2-4237-8942-c1464e316645": {
-    "id": "ca281df9-34e2-4237-8942-c1464e316645",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "1B5DJ-4562425",
-    "status": "completed",
-    "startTime": 1764744562425,
-    "endTime": 1764744562691,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "YM5ZD-4567276:7b1dd5d0-a54f-4a7b-ba96-e842119e6cdc": {
-    "id": "7b1dd5d0-a54f-4a7b-ba96-e842119e6cdc",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "YM5ZD-4567276",
-    "status": "completed",
-    "startTime": 1764744567277,
-    "endTime": 1764744567497,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "EPEQ5-4571812:9a510c10-99b4-4f92-9401-aa1d5d4c955a": {
-    "id": "9a510c10-99b4-4f92-9401-aa1d5d4c955a",
-    "name": "AuthLogin",
-    "parentTraceId": "EPEQ5-4571812",
-    "status": "completed",
-    "startTime": 1764744571813,
-    "endTime": 1764744572104,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthLogin"
-    },
-    "events": []
-  },
-  "K6S76-9469155:ecf20a40-3b46-44c1-bef4-93e2519e8ee0": {
-    "id": "ecf20a40-3b46-44c1-bef4-93e2519e8ee0",
-    "name": "AuthGetCurrentUser",
-    "parentTraceId": "K6S76-9469155",
-    "status": "completed",
-    "startTime": 1765079469155,
-    "endTime": 1765079469351,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthGetCurrentUser"
-    },
-    "events": []
-  },
-  "AQH3G-9473633:5c7230cf-b8eb-4c57-9761-ac1610f2a537": {
-    "id": "5c7230cf-b8eb-4c57-9761-ac1610f2a537",
-    "name": "AuthLogin",
-    "parentTraceId": "AQH3G-9473633",
-    "status": "completed",
-    "startTime": 1765079473635,
-    "endTime": 1765079473901,
-    "entryPoint": {
-      "type": "api",
-      "stepName": "AuthLogin"
-    },
-    "events": []
-  },
   "F1R6S-0373999:f478f3bf-1e9e-4749-974f-87b471ef77c7": {
     "id": "f478f3bf-1e9e-4749-974f-87b471ef77c7",
     "name": "AuthLogout",
@@ -646,6 +386,266 @@
     "entryPoint": {
       "type": "api",
       "stepName": "UsersGetAll"
+    },
+    "events": []
+  },
+  "FEVPE-8759586:55fd4581-f672-48b2-8be5-551dbc30579f": {
+    "id": "55fd4581-f672-48b2-8be5-551dbc30579f",
+    "name": "AuthLogout",
+    "parentTraceId": "FEVPE-8759586",
+    "status": "completed",
+    "startTime": 1765248759588,
+    "endTime": 1765248759822,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogout"
+    },
+    "events": []
+  },
+  "Q1GEJ-1158294:fa2779ea-5a9f-493f-972f-39847ab07527": {
+    "id": "fa2779ea-5a9f-493f-972f-39847ab07527",
+    "name": "AuthGetCurrentUser",
+    "parentTraceId": "Q1GEJ-1158294",
+    "status": "completed",
+    "startTime": 1765351158295,
+    "endTime": 1765351158443,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthGetCurrentUser"
+    },
+    "events": []
+  },
+  "8TGUD-1176576:a0b7b158-b918-4a0b-a506-2216b0a14cce": {
+    "id": "a0b7b158-b918-4a0b-a506-2216b0a14cce",
+    "name": "AuthLogin",
+    "parentTraceId": "8TGUD-1176576",
+    "status": "completed",
+    "startTime": 1765351176576,
+    "endTime": 1765351176856,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogin"
+    },
+    "events": []
+  },
+  "4UNEF-1180860:30dbbf5a-6785-4f6e-82dd-2dc4ce8c8617": {
+    "id": "30dbbf5a-6785-4f6e-82dd-2dc4ce8c8617",
+    "name": "UsersGetAll",
+    "parentTraceId": "4UNEF-1180860",
+    "status": "completed",
+    "startTime": 1765351180860,
+    "endTime": 1765351181010,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "UsersGetAll"
+    },
+    "events": []
+  },
+  "5GQMN-2105439:a1e71231-6f3d-4b36-8f82-8ce4d4c967c3": {
+    "id": "a1e71231-6f3d-4b36-8f82-8ce4d4c967c3",
+    "name": "AuthLogout",
+    "parentTraceId": "5GQMN-2105439",
+    "status": "completed",
+    "startTime": 1765352105439,
+    "endTime": 1765352105669,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogout"
+    },
+    "events": []
+  },
+  "M5BX7-4530412:96848634-a0b0-45b4-8f67-55ee97637138": {
+    "id": "96848634-a0b0-45b4-8f67-55ee97637138",
+    "name": "AuthLogin",
+    "parentTraceId": "M5BX7-4530412",
+    "status": "completed",
+    "startTime": 1765354530413,
+    "endTime": 1765354530686,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogin"
+    },
+    "events": []
+  },
+  "5CKC8-4530694:8c7220a1-e46b-44ad-83d6-c7eca2d7647f": {
+    "id": "8c7220a1-e46b-44ad-83d6-c7eca2d7647f",
+    "name": "AuthLogout",
+    "parentTraceId": "5CKC8-4530694",
+    "status": "completed",
+    "startTime": 1765354530694,
+    "endTime": 1765354530807,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogout"
+    },
+    "events": []
+  },
+  "6D3RK-4538270:8fa10d6a-29d5-4eb5-bfb9-f1157028e9f8": {
+    "id": "8fa10d6a-29d5-4eb5-bfb9-f1157028e9f8",
+    "name": "AuthLogin",
+    "parentTraceId": "6D3RK-4538270",
+    "status": "completed",
+    "startTime": 1765354538270,
+    "endTime": 1765354538489,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogin"
+    },
+    "events": []
+  },
+  "1F6EV-4540828:c94e7481-c564-42b9-a98c-661768854cb6": {
+    "id": "c94e7481-c564-42b9-a98c-661768854cb6",
+    "name": "UsersGetAll",
+    "parentTraceId": "1F6EV-4540828",
+    "status": "completed",
+    "startTime": 1765354540828,
+    "endTime": 1765354540976,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "UsersGetAll"
+    },
+    "events": []
+  },
+  "F72T2-4579349:180054a5-0e96-469f-9d0d-496ee976853e": {
+    "id": "180054a5-0e96-469f-9d0d-496ee976853e",
+    "name": "AuthChangePassword",
+    "parentTraceId": "F72T2-4579349",
+    "status": "completed",
+    "startTime": 1765354579350,
+    "endTime": 1765354579680,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthChangePassword"
+    },
+    "events": []
+  },
+  "BJFQM-4587959:2f13a7c9-dc29-4b57-9075-295e1f77c09d": {
+    "id": "2f13a7c9-dc29-4b57-9075-295e1f77c09d",
+    "name": "AuthGetCurrentUser",
+    "parentTraceId": "BJFQM-4587959",
+    "status": "completed",
+    "startTime": 1765354587960,
+    "endTime": 1765354588092,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthGetCurrentUser"
+    },
+    "events": []
+  },
+  "SM463-4591708:2cb040dc-93ab-44f0-97a1-54a9f5716572": {
+    "id": "2cb040dc-93ab-44f0-97a1-54a9f5716572",
+    "name": "AuthGetCurrentUser",
+    "parentTraceId": "SM463-4591708",
+    "status": "completed",
+    "startTime": 1765354591709,
+    "endTime": 1765354591866,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthGetCurrentUser"
+    },
+    "events": []
+  },
+  "2MRXN-4598676:566420ca-4707-4af0-acf0-5a7a7d074fa6": {
+    "id": "566420ca-4707-4af0-acf0-5a7a7d074fa6",
+    "name": "AuthLogin",
+    "parentTraceId": "2MRXN-4598676",
+    "status": "completed",
+    "startTime": 1765354598676,
+    "endTime": 1765354598931,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogin"
+    },
+    "events": []
+  },
+  "7YDPP-4604054:00f9593d-ff1b-48a7-8193-59688ad9bb0b": {
+    "id": "00f9593d-ff1b-48a7-8193-59688ad9bb0b",
+    "name": "AuthLogout",
+    "parentTraceId": "7YDPP-4604054",
+    "status": "completed",
+    "startTime": 1765354604054,
+    "endTime": 1765354604204,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogout"
+    },
+    "events": []
+  },
+  "G8ADV-4607579:af18d004-fe20-4002-9e35-d25881f9e894": {
+    "id": "af18d004-fe20-4002-9e35-d25881f9e894",
+    "name": "AuthLogin",
+    "parentTraceId": "G8ADV-4607579",
+    "status": "completed",
+    "startTime": 1765354607579,
+    "endTime": 1765354607793,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogin"
+    },
+    "events": []
+  },
+  "VXB77-4607799:a512cc57-3fe2-429c-a593-f1081ea04402": {
+    "id": "a512cc57-3fe2-429c-a593-f1081ea04402",
+    "name": "AuthLogout",
+    "parentTraceId": "VXB77-4607799",
+    "status": "completed",
+    "startTime": 1765354607800,
+    "endTime": 1765354607913,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogout"
+    },
+    "events": []
+  },
+  "TJK9B-4613065:0160c83f-1610-4c6a-ba66-66153735596c": {
+    "id": "0160c83f-1610-4c6a-ba66-66153735596c",
+    "name": "AuthLogin",
+    "parentTraceId": "TJK9B-4613065",
+    "status": "completed",
+    "startTime": 1765354613065,
+    "endTime": 1765354613282,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogin"
+    },
+    "events": []
+  },
+  "ZPC62-5465445:b56fa9c0-926f-4fcd-ab22-e199c8b7fd00": {
+    "id": "b56fa9c0-926f-4fcd-ab22-e199c8b7fd00",
+    "name": "AuthLogout",
+    "parentTraceId": "ZPC62-5465445",
+    "status": "completed",
+    "startTime": 1765355465448,
+    "endTime": 1765355465667,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogout"
+    },
+    "events": []
+  },
+  "HPURW-5525448:3476f7a6-a041-49aa-8cc5-029083fc2149": {
+    "id": "3476f7a6-a041-49aa-8cc5-029083fc2149",
+    "name": "AuthLogout",
+    "parentTraceId": "HPURW-5525448",
+    "status": "completed",
+    "startTime": 1765355525449,
+    "endTime": 1765355525602,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogout"
+    },
+    "events": []
+  },
+  "YC41V-5525452:ec7fd931-0603-44d0-84d4-7fa17ee08422": {
+    "id": "ec7fd931-0603-44d0-84d4-7fa17ee08422",
+    "name": "AuthLogout",
+    "parentTraceId": "YC41V-5525452",
+    "status": "completed",
+    "startTime": 1765355525453,
+    "endTime": 1765355525612,
+    "entryPoint": {
+      "type": "api",
+      "stepName": "AuthLogout"
     },
     "events": []
   }
