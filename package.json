@@ -3,26 +3,48 @@
   "version": "1.0.0",
   "description": "Nodejs backend with motia",
   "main": "index.js",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
+    "preinstall": "node scripts/check-node-version.js",
     "start": "motia start --port 3002",
     "dev": "motia dev --port 3002",
     "migrate:up": "node scripts/migrate.js up",
     "migrate:down": "node scripts/migrate.js down",
+    "migrate:config": "node scripts/migrate-config-only.js",
     "verify:migrations": "node scripts/verify-migrations.js",
-    "test:cookies": "node tests/cookie-utils.test.js"
+    "test": "jest",
+    "test:cookies": "node tests/cookie-utils.test.js",
+    "test:checkops": "jest tests/checkops-*.test.js",
+    "test:findings": "node test-findings-implementation.js",
+    "checkops:setup": "node scripts/setup-checkops.js",
+    "checkops:health": "node -e \"const w = require('./lib/checkops-wrapper').getCheckOpsWrapper(); w.initialize().then(() => w.getHealthStatus()).then(console.log).catch(console.error)\"",
+    "checkops:verify": "node scripts/verify-checkops-schema.js",
+    "checkops:validate-env": "node scripts/validate-env.js",
+    "checkops:test": "node test-checkops-fixed.js",
+    "checkops:migrate": "node run-checkops-migrations.js",
+    "config:check": "node scripts/check-config-table.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@saiqa-tech/checkops": "^4.0.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "express-rate-limit": "^7.1.5",
     "jsonwebtoken": "^9.0.2",
     "motia": "^0.11.2-beta.156",
     "pg": "^8.16.3",
+    "semver": "^7.5.4",
     "uuid": "^13.0.0",
     "winston": "^3.18.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.4"
   }
 }

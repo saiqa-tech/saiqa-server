@@ -30,6 +30,35 @@ declare module 'motia' {
     'DesignationsGetAll': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'DesignationsDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'DesignationsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'ConfigGetByKey': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'ConfigGetAll': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsSubmissionsStats': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsSubmissionsList': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsSubmissionsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsQuestionsUsage': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsQuestionsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsQuestionsToggleStatus': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsQuestionsList': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsQuestionsGet': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsQuestionsDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsQuestionsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsMetrics': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormsToggleStatus': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormsStats': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormsList': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormsGet': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormsDuplicate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormsDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFindingsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFindingsStats': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFindingsList': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFindingsGet': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFindingsDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFindingsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFindingsAllowedValues': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsConfigAllowedValues': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AuthRefresh': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AuthGetCurrentUser': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AuthLogout': ApiRouteHandler<Record<string, unknown>, unknown, never>
