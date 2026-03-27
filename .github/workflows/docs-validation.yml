@@ -1,0 +1,142 @@
+name: Docs Validation
+
+on:
+  pull_request:
+    paths:
+      - '*.md'
+      - 'docs/**/*.md'
+      - '.github/workflows/docs-validation.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '*.md'
+      - 'docs/**/*.md'
+      - '.github/workflows/docs-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate markdown links in repo docs surface
+        run: |
+          python3 <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+          from urllib.parse import unquote
+
+          repo = Path('.').resolve()
+          link_pattern = re.compile(r'(?<!!)\[[^\]]+\]\(([^)]+)\)')
+          broken_links = []
+
+          markdown_files = sorted(repo.glob('*.md'))
+          docs_dir = repo / 'docs'
+          if docs_dir.exists():
+              markdown_files.extend(sorted(docs_dir.rglob('*.md')))
+
+          def resolve_target(source_file: Path, raw_target: str):
+              target = raw_target.strip()
+              if not target:
+                  return None
+              if target.startswith(('#', 'http://', 'https://', 'mailto:', 'tel:')):
+                  return None
+
+              path_text = target.split('#', 1)[0].strip()
+              if not path_text:
+                  return None
+
+              path_text = unquote(path_text)
+              if path_text.startswith('/'):
+                  return repo / path_text.lstrip('/')
+              return (source_file.parent / path_text).resolve()
+
+          for source_file in markdown_files:
+              text = source_file.read_text(encoding='utf-8')
+              for match in link_pattern.finditer(text):
+                  raw_target = match.group(1).strip()
+                  resolved = resolve_target(source_file, raw_target)
+                  if resolved is None:
+                      continue
+                  if not resolved.exists():
+                      line_number = text.count('\n', 0, match.start()) + 1
+                      broken_links.append((source_file.relative_to(repo), line_number, raw_target))
+
+          if broken_links:
+              print('Broken markdown links found:')
+              for source, line_number, target in broken_links:
+                  print(f'::error file={source},line={line_number}::Broken markdown link target: {target}')
+              sys.exit(1)
+
+          print('Docs link validation passed.')
+          PY
+
+      - name: Report docs older than 90 days
+        if: ${{ always() }}
+        run: |
+          python3 <<'PY'
+          import os
+          import subprocess
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          repo = Path('.').resolve()
+          threshold_days = 90
+          now = datetime.now(timezone.utc)
+          stale_docs = []
+
+          markdown_files = sorted(repo.glob('*.md'))
+          docs_dir = repo / 'docs'
+          if docs_dir.exists():
+              markdown_files.extend(sorted(docs_dir.rglob('*.md')))
+
+          for doc_file in markdown_files:
+              rel_path = doc_file.relative_to(repo)
+              result = subprocess.run(
+                  ['git', 'log', '-1', '--format=%ct', '--', str(rel_path)],
+                  capture_output=True,
+                  text=True,
+                  check=False,
+              )
+
+              timestamp_text = result.stdout.strip()
+              if not timestamp_text:
+                  stale_docs.append((str(rel_path), 'untracked or no commit history', 'report-only'))
+                  continue
+
+              last_updated = datetime.fromtimestamp(int(timestamp_text), tz=timezone.utc)
+              age_days = (now - last_updated).days
+              if age_days > threshold_days:
+                  stale_docs.append((str(rel_path), age_days, last_updated.date().isoformat()))
+
+          summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
+          lines = ['# Docs Age Report', '']
+
+          if stale_docs:
+              lines.append(f'Files older than {threshold_days} days:')
+              lines.append('')
+              lines.append('| File | Age | Last updated |')
+              lines.append('| --- | --- | --- |')
+              for rel_path, age, last_updated in stale_docs:
+                  lines.append(f'| {rel_path} | {age} | {last_updated} |')
+                  print(f'::warning file={rel_path}::Docs file is stale or missing history.')
+          else:
+              lines.append(f'No docs markdown files are older than {threshold_days} days.')
+
+          report = '\n'.join(lines) + '\n'
+          print(report)
+
+          if summary_path:
+              with open(summary_path, 'a', encoding='utf-8') as summary_file:
+                  summary_file.write(report)
+          PY
