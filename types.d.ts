@@ -58,6 +58,8 @@ declare module 'motia' {
     'CheckOpsFindingsDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsFindingsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsFindingsAllowedValues': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsConfigFindingsValuesPut': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsConfigFindingsValuesGet': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsConfigAllowedValues': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AuthRefresh': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'AuthGetCurrentUser': ApiRouteHandler<Record<string, unknown>, unknown, never>
