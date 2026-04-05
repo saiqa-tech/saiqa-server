@@ -32,6 +32,23 @@ function rowToQuestion(row) {
     };
 }
 
+/**
+ * Return a Map<questionId, usageCount> for a batch of question IDs.
+ * Executes a single SQL statement — one DB round-trip regardless of batch size.
+ * The correlated subquery uses the GIN index on forms.questions for each lookup.
+ */
+async function batchGetUsageCounts(questionIds) {
+    if (!questionIds.length) return new Map();
+    const result = await db.query(
+        `SELECT q_id,
+                (SELECT COUNT(*)::int FROM forms
+                 WHERE questions @> jsonb_build_array(q_id::text)) AS usage_count
+         FROM unnest($1::text[]) AS q_id`,
+        [questionIds],
+    );
+    return new Map(result.rows.map((r) => [r.q_id, r.usage_count]));
+}
+
 const handler = async (req, ctx) => {
     try {
         if (process.env.CHECKOPS_ENABLED !== 'true') {
@@ -77,12 +94,13 @@ const handler = async (req, ctx) => {
             ]);
 
             const total = parseInt(countResult.rows[0].count, 10);
+            const usageCounts = await batchGetUsageCounts(dataResult.rows.map((r) => r.id));
 
             return {
                 status: 200,
                 body: {
                     success: true,
-                    data: dataResult.rows.map(rowToQuestion),
+                    data: dataResult.rows.map((row) => ({ ...rowToQuestion(row), usageCount: usageCounts.get(row.id) ?? 0 })),
                     pagination: {
                         page: parsedPage,
                         limit: parsedLimit,
@@ -112,12 +130,13 @@ const handler = async (req, ctx) => {
             checkopsWrapper.getAllQuestions(listOptions),
             checkopsWrapper.getQuestionCount(countOptions),
         ]);
+        const usageCounts = await batchGetUsageCounts(questions.map((q) => q.id));
 
         return {
             status: 200,
             body: {
                 success: true,
-                data: questions,
+                data: questions.map((q) => ({ ...q.toJSON(), usageCount: usageCounts.get(q.id) ?? 0 })),
                 pagination: {
                     page: parsedPage,
                     limit: parsedLimit,
