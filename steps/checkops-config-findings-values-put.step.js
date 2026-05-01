@@ -26,6 +26,14 @@ const handler = async (req, ctx) => {
             return { status: 503, body: { error: 'CheckOps is not enabled' } };
         }
 
+        // This endpoint modifies system-wide config — admin only.
+        if (req.user.role !== 'admin') {
+            return {
+                status: 403,
+                body: { error: 'Admin access required.' }
+            };
+        }
+
         const { severities, departments } = req.body ?? {};
 
         // Validate severities

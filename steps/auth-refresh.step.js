@@ -37,7 +37,10 @@ const handler = async (req, { logger }) => {
     }
 
     const userResult = await query(
-      'SELECT * FROM users WHERE id = $1 AND is_active = true',
+      `SELECT u.*, d.level AS designation_level
+       FROM users u
+       LEFT JOIN designations d ON u.designation_id = d.id
+       WHERE u.id = $1 AND u.is_active = true`,
       [payload.userId]
     );
 

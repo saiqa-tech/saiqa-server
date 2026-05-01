@@ -1,10 +1,21 @@
 /**
  * CheckOps Findings - List Findings with Filters Endpoint
+ *
+ * Phase 4: returns only findings the requesting user is authorised to see,
+ * scoped to stores within the user's authorised scope.
+ *
+ * The findings table has no target_unit_id column — scope is applied by
+ * JOINing findings to submissions and filtering on submissions.target_unit_id.
+ *
+ * Uses direct SQL instead of checkops wrapper so the scope WHERE clause
+ * can be injected.  Both saiqa-server and checkops share the same PostgreSQL
+ * database.
  */
 
 require('dotenv').config();
+const { query } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
-const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
+const { buildReportingFilter } = require('../lib/visibility-engine');
 
 const config = {
     emits: [],
@@ -15,9 +26,96 @@ const config = {
     middleware: [authenticate]
 };
 
+// ---------------------------------------------------------------------------
+// Helper: take a base WHERE string + base params array, append the scope
+// clause, and return { where: string, params: array }.
+// Does NOT mutate the input params array.
+// ---------------------------------------------------------------------------
+function withScope(baseWhere, baseParams, filter) {
+    const params = [...baseParams];
+
+    if (filter.filterType === 'ALL') {
+        return { where: baseWhere, params };
+    }
+
+    const scopeIdx = params.length + 1;
+    let where;
+
+    if (filter.filterType === 'SELF') {
+        params.push(filter.homeUnitId);
+        where = `(${baseWhere}) AND (f.target_unit_id IS NULL OR f.target_unit_id = $${scopeIdx})`;
+    } else {
+        params.push(filter.unitIds);
+        where = `(${baseWhere}) AND (f.target_unit_id IS NULL OR f.target_unit_id = ANY($${scopeIdx}::uuid[]))`;
+    }
+
+    return { where, params };
+}
+
+// Core SELECT + FROM + JOINs used by every branch.
+// findings has a native target_unit_id column — no submissions JOIN needed for scope or data.
+const CORE_SELECT = `
+    SELECT
+        f.id,
+        f.sid,
+        f.submission_id,
+        f.submission_sid,
+        f.question_id,
+        f.question_sid,
+        f.form_id,
+        f.form_sid,
+        f.severity,
+        f.department,
+        f.observation,
+        f.root_cause,
+        f.evidence_urls,
+        f.assignment,
+        f.status,
+        f.metadata,
+        f.created_at,
+        f.created_by,
+        f.target_unit_id,
+        forms.title      AS form_title,
+        qb.question_text AS question_text,
+        u.name           AS target_unit_name
+    FROM public.findings f
+    JOIN forms              ON forms.id = f.form_id
+    JOIN question_bank qb   ON qb.id = f.question_id
+    LEFT JOIN units u       ON u.id = f.target_unit_id
+`;
+
+function mapRow(row) {
+    return {
+        id: row.id,
+        sid: row.sid,
+        submissionId: row.submission_id,
+        submissionSid: row.submission_sid,
+        questionId: row.question_id,
+        questionSid: row.question_sid,
+        formId: row.form_id,
+        formSid: row.form_sid,
+        severity: row.severity,
+        department: row.department,
+        observation: row.observation,
+        rootCause: row.root_cause,
+        evidenceUrls: row.evidence_urls ?? undefined,
+        assignment: row.assignment,
+        status: row.status,
+        metadata: row.metadata,
+        createdAt: row.created_at,
+        // findings table has no updated_at column — return created_at as fallback
+        updatedAt: row.created_at,
+        createdBy: row.created_by,
+        targetUnitId: row.target_unit_id ?? null,
+        // FindingWithContextSchema extras
+        formTitle: row.form_title,
+        questionText: row.question_text,
+        targetUnitName: row.target_unit_name ?? null,
+    };
+}
+
 const handler = async (req, ctx) => {
     try {
-        // Check if CheckOps is enabled
         if (process.env.CHECKOPS_ENABLED !== 'true') {
             return {
                 status: 503,
@@ -25,14 +123,6 @@ const handler = async (req, ctx) => {
             };
         }
 
-        const checkopsWrapper = getCheckOpsWrapper();
-
-        // Ensure CheckOps is initialized
-        if (!checkopsWrapper.initialized) {
-            await checkopsWrapper.initialize();
-        }
-
-        // Extract query parameters
         const {
             formId,
             submissionId,
@@ -40,64 +130,154 @@ const handler = async (req, ctx) => {
             severity,
             department,
             status,
-            createdAfter,
-            createdBefore,
-            limit = 100,
-            offset = 0
+            limit = 20,
+            page = 1,
         } = req.queryParams || {};
 
-        // Build filters object
-        const filters = {
-            limit: parseInt(limit, 10),
-            offset: parseInt(offset, 10)
-        };
+        const parsedLimit = Math.min(parseInt(limit, 10), 100);
+        const parsedPage = Math.max(parseInt(page, 10), 1);
+        const parsedOffset = (parsedPage - 1) * parsedLimit;
 
-        if (formId) filters.formId = formId;
-        if (severity) filters.severity = severity;
-        if (department) filters.department = department;
-        if (status) filters.status = status;
-        if (createdAfter) filters.createdAfter = createdAfter;
-        if (createdBefore) filters.createdBefore = createdBefore;
+        // Step 1 — Build the reporting filter for this user
+        const filter = await buildReportingFilter(req.user.userId, 'VIEW_FINDING');
+
+        // Step 2 — 403 if not allowed
+        if (!filter.allow) {
+            return {
+                status: 403,
+                body: { error: 'You do not have permission to view findings.' }
+            };
+        }
 
         let findings;
         let totalCount;
 
-        // Route to appropriate method based on query parameters
         if (submissionId) {
-            // Get findings by submission
-            findings = await checkopsWrapper.getFindingsBySubmission(submissionId);
-            totalCount = findings.length;
+            // Branch 1: findings for a specific submission
+            const { where, params } = withScope('f.submission_id = $1', [submissionId], filter);
+            const limitIdx = params.length + 1;
+            const offsetIdx = params.length + 2;
+
+            const [dataRes, countRes] = await Promise.all([
+                query(
+                    `${CORE_SELECT} WHERE ${where}
+                     ORDER BY f.created_at DESC
+                     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+                    [...params, parsedLimit, parsedOffset]
+                ),
+                query(
+                    `SELECT COUNT(*) AS total FROM public.findings f WHERE ${where}`,
+                    params
+                ),
+            ]);
+            findings = dataRes.rows;
+            totalCount = parseInt(countRes.rows[0].total, 10);
+
         } else if (questionId) {
-            // Get findings by question
-            findings = await checkopsWrapper.getFindingsByQuestion(questionId, {
-                limit: filters.limit,
-                offset: filters.offset
-            });
-            totalCount = await checkopsWrapper.getFindingCount({ questionId });
+            // Branch 2: findings for a specific question
+            const { where, params } = withScope('f.question_id = $1', [questionId], filter);
+            const limitIdx = params.length + 1;
+            const offsetIdx = params.length + 2;
+
+            const [dataRes, countRes] = await Promise.all([
+                query(
+                    `${CORE_SELECT} WHERE ${where}
+                     ORDER BY f.created_at DESC
+                     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+                    [...params, parsedLimit, parsedOffset]
+                ),
+                query(
+                    `SELECT COUNT(*) AS total
+                     FROM public.findings f
+                     WHERE ${where}`,
+                    params
+                ),
+            ]);
+            findings = dataRes.rows;
+            totalCount = parseInt(countRes.rows[0].total, 10);
+
         } else if (formId) {
-            // Get findings by form
-            findings = await checkopsWrapper.getFindingsByForm(formId, {
-                limit: filters.limit,
-                offset: filters.offset
-            });
-            totalCount = await checkopsWrapper.getFindingCount({ formId });
+            // Branch 3: findings for a specific form
+            const { where, params } = withScope('f.form_id = $1', [formId], filter);
+            const limitIdx = params.length + 1;
+            const offsetIdx = params.length + 2;
+
+            const [dataRes, countRes] = await Promise.all([
+                query(
+                    `${CORE_SELECT} WHERE ${where}
+                     ORDER BY f.created_at DESC
+                     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+                    [...params, parsedLimit, parsedOffset]
+                ),
+                query(
+                    `SELECT COUNT(*) AS total
+                     FROM public.findings f
+                     WHERE ${where}`,
+                    params
+                ),
+            ]);
+            findings = dataRes.rows;
+            totalCount = parseInt(countRes.rows[0].total, 10);
+
         } else {
-            // Get all findings with filters
-            findings = await checkopsWrapper.getFindings(filters);
-            totalCount = await checkopsWrapper.getFindingCount(filters);
+            // Branch 4: all findings, with optional attribute filters
+            const conditions = [];
+            const baseParams = [];
+
+            if (severity) {
+                baseParams.push(severity);
+                conditions.push(`f.severity = $${baseParams.length}`);
+            }
+            if (department) {
+                baseParams.push(department);
+                conditions.push(`f.department = $${baseParams.length}`);
+            }
+            if (status) {
+                baseParams.push(status);
+                conditions.push(`f.status = $${baseParams.length}`);
+            }
+
+            const baseWhere = conditions.length > 0 ? conditions.join(' AND ') : '1=1';
+
+            const { where: countWhere, params: countParams } =
+                withScope(baseWhere, baseParams, filter);
+
+            const { where, params } = withScope(baseWhere, baseParams, filter);
+            const limitIdx = params.length + 1;
+            const offsetIdx = params.length + 2;
+
+            const [dataRes, countRes] = await Promise.all([
+                query(
+                    `${CORE_SELECT} WHERE ${where}
+                     ORDER BY f.created_at DESC
+                     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+                    [...params, parsedLimit, parsedOffset]
+                ),
+                query(
+                    `SELECT COUNT(*) AS total
+                     FROM public.findings f
+                     WHERE ${countWhere}`,
+                    countParams
+                ),
+            ]);
+            findings = dataRes.rows;
+            totalCount = parseInt(countRes.rows[0].total, 10);
         }
+
+        const findingsList = findings.map(mapRow);
+        const totalPages = Math.ceil(totalCount / parsedLimit);
 
         return {
             status: 200,
             body: {
                 success: true,
-                data: findings,
+                data: findingsList,
                 pagination: {
+                    page: parsedPage,
+                    limit: parsedLimit,
                     total: totalCount,
-                    limit: filters.limit,
-                    offset: filters.offset,
-                    hasMore: (filters.offset + findings.length) < totalCount
-                }
+                    totalPages,
+                },
             }
         };
     } catch (error) {

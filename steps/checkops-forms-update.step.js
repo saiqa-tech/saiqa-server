@@ -3,10 +3,12 @@
  */
 
 require('dotenv').config();
+const { authenticate, managerOrAdmin } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { validateFormData } = require('../lib/checkops-validation');
 const { enrichFormQuestions } = require('../lib/checkops-form-enricher');
 const { logAudit } = require('../utils/audit');
+const { syncFormApplicability } = require('../lib/form-applicability-sync');
 
 /**
  * Extract per-form question overrides from an updates payload.
@@ -58,7 +60,8 @@ const config = {
     name: 'CheckOpsFormsUpdate',
     type: 'api',
     path: '/api/checkops/forms/:formId',
-    method: 'PUT'
+    method: 'PUT',
+    middleware: [authenticate, managerOrAdmin]
 };
 
 const handler = async (req, ctx) => {
@@ -108,7 +111,29 @@ const handler = async (req, ctx) => {
         // enricher can re-attach them on every subsequent read.
         const processedUpdates = extractQuestionOverrides(updates);
 
-        const updatedForm = await checkopsWrapper.updateForm(formId, processedUpdates);
+        // Strip the full `visibility` object out before sending to checkops.
+        // checkops only knows `requireAll` (a plain boolean for the require_all column).
+        // allowedDesignationIds and requiresTags belong to saiqa-server tables only.
+        //
+        // IMPORTANT: only include requireAll when the client explicitly sent a `visibility`
+        // key.  If visibility is absent (e.g. a title-only update), we must NOT touch the
+        // require_all column — omitting requireAll from the payload means updateById() skips
+        // that column entirely.  Including it unconditionally would silently reset
+        // require_all = false back to true on every title-only save.
+        const { visibility: clientVisibility, ...checkopsUpdates } = processedUpdates;
+        const updatedForm = await checkopsWrapper.updateForm(formId, {
+            ...checkopsUpdates,
+            ...(clientVisibility !== undefined && { requireAll: clientVisibility.require_all ?? true })
+        });
+
+        // Sync form applicability tables, but ONLY when the client explicitly
+        // included a `visibility` key in the request body.
+        // If visibility is absent (e.g. a title-only update), do NOT touch the
+        // applicability tables at all — absence means "leave restrictions as-is",
+        // not "clear all restrictions".
+        if (updates.visibility !== undefined) {
+            await syncFormApplicability(updatedForm.id, updates.visibility);
+        }
 
         // Enrich UUID-string questions to full objects so the client can parse
         // FormResponseSchema without errors.
@@ -116,18 +141,18 @@ const handler = async (req, ctx) => {
 
         // Log audit trail
         await logAudit({
-            userId: req.user?.id,
+            userId: req.user?.userId,
             action: 'UPDATE',
             entityType: 'checkops_form',
             entityId: updatedForm.id,
-            entitySid: updatedForm.sid,  // NEW: Human-readable ID
+            entitySid: updatedForm.sid,
             changes: updates,
             ipAddress: req.ip || req.headers?.['x-forwarded-for'],
             userAgent: req.headers?.['user-agent']
         });
 
         // Enhanced logging
-        console.log(`✅ Form updated via API: ${updatedForm.sid} (${updatedForm.id}) by user ${req.user?.id || 'anonymous'}`);
+        console.log(`✅ Form updated via API: ${updatedForm.sid} (${updatedForm.id}) by user ${req.user?.userId || 'anonymous'}`);
 
         return {
             status: 200,

@@ -28,7 +28,10 @@ const handler = async (req, { logger }) => {
 
   try {
     const result = await query(
-      'SELECT * FROM users WHERE email = $1 AND is_active = true',
+      `SELECT u.*, d.level AS designation_level
+       FROM users u
+       LEFT JOIN designations d ON u.designation_id = d.id
+       WHERE u.email = $1 AND u.is_active = true`,
       [email]
     );
 

@@ -43,8 +43,7 @@ const handler = async (req, ctx) => {
             await checkopsWrapper.initialize();
         }
 
-        // Safely extract id from params
-        const id = req.params?.id;
+        const id = req.pathParams?.id;
 
         if (!id) {
             return {
@@ -61,7 +60,7 @@ const handler = async (req, ctx) => {
 
         // Log audit trail
         await logAudit({
-            userId: req.user.id,
+            userId: req.user.userId,
             action: 'DELETE',
             entityType: 'checkops_finding',
             entityId: finding.id,
@@ -77,7 +76,7 @@ const handler = async (req, ctx) => {
             userAgent: req.headers?.['user-agent']
         });
 
-        console.log(`✅ Finding deleted: ${finding.sid} by admin ${req.user.id}`);
+        console.log(`✅ Finding deleted: ${finding.sid} by admin ${req.user.userId}`);
 
         return {
             status: 200,

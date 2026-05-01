@@ -3,18 +3,21 @@
  */
 
 require('dotenv').config();
+const { authenticate, managerOrAdmin } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { validateFormData } = require('../lib/checkops-validation');
 const { createFormWithQuestionIds } = require('../lib/checkops-question-id-mapper');
 const { enrichFormQuestions } = require('../lib/checkops-form-enricher');
 const { logAudit } = require('../utils/audit');
+const { syncFormApplicability } = require('../lib/form-applicability-sync');
 
 const config = {
     emits: [],
     name: 'CheckOpsFormsCreate',
     type: 'api',
     path: '/api/checkops/forms',
-    method: 'POST'
+    method: 'POST',
+    middleware: [authenticate, managerOrAdmin]
 };
 
 const handler = async (req, ctx) => {
@@ -35,7 +38,7 @@ const handler = async (req, ctx) => {
         }
 
         // Validate request body
-        const { title, description, questions, metadata } = req.body;
+        const { title, description, questions, metadata, visibility } = req.body;
 
         const validationErrors = validateFormData({ title, description, questions, metadata });
         if (validationErrors.length > 0) {
@@ -49,12 +52,20 @@ const handler = async (req, ctx) => {
         }
 
         // Create form using proper CheckOps workflow (post-fix)
+        // Pass requireAll (boolean) directly to checkops — the boolean is the only
+        // thing stored in the forms table.  The full visibilityConfig (with
+        // allowedDesignationIds + requiresTags) is written to saiqa-server tables
+        // by syncFormApplicability below.
         const form = await createFormWithQuestionIds({
             title,
             description: description || '',
             questions,
-            metadata: metadata || {}
+            metadata: metadata || {},
+            requireAll: visibility?.require_all ?? true
         });
+
+        // Sync form applicability tables (designation + tag rules)
+        await syncFormApplicability(form.id, visibility ?? {});
 
         // Enrich UUID-string questions to full objects so the client can parse
         // FormResponseSchema without errors.
