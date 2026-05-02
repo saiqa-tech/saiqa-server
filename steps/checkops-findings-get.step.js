@@ -106,15 +106,15 @@ const handler = async (req, ctx) => {
         if (filter.filterType === 'SELF') {
             if (row.target_unit_id !== null && row.target_unit_id !== filter.homeUnitId) {
                 return {
-                    status: 403,
-                    body: { error: 'You do not have permission to view this finding.' }
+                    status: 404,
+                    body: { error: 'Finding not found' }
                 };
             }
         } else if (filter.filterType === 'SCOPE') {
             if (row.target_unit_id !== null && !filter.unitIds.includes(row.target_unit_id)) {
                 return {
-                    status: 403,
-                    body: { error: 'You do not have permission to view this finding.' }
+                    status: 404,
+                    body: { error: 'Finding not found' }
                 };
             }
         }
@@ -141,6 +141,7 @@ const handler = async (req, ctx) => {
                     status: row.status,
                     metadata: row.metadata,
                     createdAt: row.created_at,
+                    // findings table has no updated_at column — return created_at as fallback
                     updatedAt: row.created_at,
                     createdBy: row.created_by,
                     targetUnitId: row.target_unit_id ?? null,

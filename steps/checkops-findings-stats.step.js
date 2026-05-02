@@ -59,6 +59,13 @@ const handler = async (req, ctx) => {
             };
         }
 
+        // Validate UUID filter param so malformed input returns 400 instead of
+        // a PostgreSQL "invalid input syntax for type uuid" 500.
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (formId && !UUID_RE.test(formId)) {
+            return { status: 400, body: { error: 'formId must be a valid UUID' } };
+        }
+
         // Step 3 — Build parameterised WHERE clause
         // Optional formId filter comes first ($1 if present), scope filter follows.
         const baseParams = [];

@@ -3,14 +3,16 @@
 /**
  * GET /api/tags
  *
- * Returns all active tag definitions, grouped by category.
+ * Returns all tag definitions grouped by category (includes inactive tags).
  * Used by the admin UI to populate tag assignment controls.
  *
  * Response:
  *   {
- *     "Business_Unit": [{ "id": "...", "value": "SSS", "label": "SSS Brand" }, ...],
- *     "Countries":     [...],
- *     ...
+ *     "tags": {
+ *       "Business_Unit": [{ "id": "...", "value": "SSS", "label": "SSS Brand", "isActive": true }, ...],
+ *       "Countries":     [...],
+ *       ...
+ *     }
  *   }
  */
 

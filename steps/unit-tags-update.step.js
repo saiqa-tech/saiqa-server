@@ -34,6 +34,16 @@ const handler = async (req, { logger }) => {
         return { status: 400, body: { error: 'tagIds must be an array' } };
     }
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(unitId)) {
+        return { status: 400, body: { error: 'unitId must be a valid UUID' } };
+    }
+    const invalidTagIds = tagIds.filter(id => !UUID_RE.test(id));
+    if (invalidTagIds.length > 0) {
+        return { status: 400, body: { error: 'All tagIds must be valid UUIDs' } };
+    }
+    const uniqueTagIds = [...new Set(tagIds)];
+
     const client = await getClient();
 
     try {
@@ -50,13 +60,13 @@ const handler = async (req, { logger }) => {
         }
 
         // Validate all supplied tag IDs exist and are active
-        if (tagIds.length > 0) {
+        if (uniqueTagIds.length > 0) {
             const validRes = await client.query(
                 `SELECT id FROM tag_definitions
          WHERE id = ANY($1) AND is_active = true`,
-                [tagIds]
+                [uniqueTagIds]
             );
-            if (validRes.rows.length !== tagIds.length) {
+            if (validRes.rows.length !== uniqueTagIds.length) {
                 await client.query('ROLLBACK');
                 return { status: 400, body: { error: 'One or more tag IDs are invalid or inactive' } };
             }
@@ -69,15 +79,15 @@ const handler = async (req, { logger }) => {
         );
 
         // Insert new assignments
-        if (tagIds.length > 0) {
+        if (uniqueTagIds.length > 0) {
             const assignedBy = req.user ? req.user.userId : null;
-            const values = tagIds
-                .map((_, i) => `($1, 'unit', $${i + 2}, $${tagIds.length + 2})`)
+            const values = uniqueTagIds
+                .map((_, i) => `($1, 'unit', $${i + 2}, $${uniqueTagIds.length + 2})`)
                 .join(', ');
             await client.query(
                 `INSERT INTO entity_tag_map (entity_id, entity_type, tag_id, assigned_by)
          VALUES ${values}`,
-                [unitId, ...tagIds, assignedBy]
+                [unitId, ...uniqueTagIds, assignedBy]
             );
         }
 

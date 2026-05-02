@@ -37,6 +37,11 @@ const handler = async (req, { logger }) => {
     const { userId } = req.pathParams;
 
     try {
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!UUID_RE.test(userId)) {
+            return { status: 400, body: { error: 'userId must be a valid UUID' } };
+        }
+
         // Verify user exists and get their home unit
         const userRes = await query(
             'SELECT id, unit_id FROM users WHERE id = $1 AND is_active = true',

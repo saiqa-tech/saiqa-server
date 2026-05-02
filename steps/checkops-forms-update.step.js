@@ -9,6 +9,7 @@ const { validateFormData } = require('../lib/checkops-validation');
 const { enrichFormQuestions } = require('../lib/checkops-form-enricher');
 const { logAudit } = require('../utils/audit');
 const { syncFormApplicability } = require('../lib/form-applicability-sync');
+const { query } = require('../config/database');
 
 /**
  * Extract per-form question overrides from an updates payload.
@@ -120,10 +121,13 @@ const handler = async (req, ctx) => {
         // require_all column — omitting requireAll from the payload means updateById() skips
         // that column entirely.  Including it unconditionally would silently reset
         // require_all = false back to true on every title-only save.
+        const hasVisibilityKey = Object.prototype.hasOwnProperty.call(processedUpdates, 'visibility');
         const { visibility: clientVisibility, ...checkopsUpdates } = processedUpdates;
+        const normalizedVisibility =
+            clientVisibility && typeof clientVisibility === 'object' ? clientVisibility : {};
         const updatedForm = await checkopsWrapper.updateForm(formId, {
             ...checkopsUpdates,
-            ...(clientVisibility !== undefined && { requireAll: clientVisibility.require_all ?? true })
+            ...(hasVisibilityKey && { requireAll: normalizedVisibility.require_all ?? true })
         });
 
         // Sync form applicability tables, but ONLY when the client explicitly
@@ -131,13 +135,37 @@ const handler = async (req, ctx) => {
         // If visibility is absent (e.g. a title-only update), do NOT touch the
         // applicability tables at all — absence means "leave restrictions as-is",
         // not "clear all restrictions".
-        if (updates.visibility !== undefined) {
-            await syncFormApplicability(updatedForm.id, updates.visibility);
+        if (hasVisibilityKey) {
+            await syncFormApplicability(updatedForm.id, normalizedVisibility);
         }
 
         // Enrich UUID-string questions to full objects so the client can parse
         // FormResponseSchema without errors.
         await enrichFormQuestions(updatedForm, checkopsWrapper);
+
+        // Attach the visibility object so the update response matches the GET response
+        // shape. Without this the client receives requireAll (camelCase) at the top
+        // level but no visibility object, and the FormBuilder loses visibility config
+        // immediately after saving.
+        const [designationRowsForVis, tagRowsForVis] = await Promise.all([
+            query(
+                'SELECT designation_id FROM form_applicability_designation_map WHERE form_id = $1',
+                [updatedForm.id]
+            ),
+            query(
+                `SELECT td.category, td.value
+                 FROM form_applicability_tag_map fatm
+                 JOIN tag_definitions td ON td.id = fatm.tag_id
+                 WHERE fatm.form_id = $1`,
+                [updatedForm.id]
+            )
+        ]);
+
+        updatedForm.visibility = {
+            require_all: updatedForm.requireAll ?? true,
+            allowedDesignationIds: designationRowsForVis.rows.map((r) => r.designation_id),
+            requiresTags: tagRowsForVis.rows.map((r) => ({ category: r.category, value: r.value }))
+        };
 
         // Log audit trail
         await logAudit({

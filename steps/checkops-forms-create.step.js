@@ -64,27 +64,55 @@ const handler = async (req, ctx) => {
             requireAll: visibility?.require_all ?? true
         });
 
-        // Sync form applicability tables (designation + tag rules)
-        await syncFormApplicability(form.id, visibility ?? {});
+        // Sync form applicability tables (designation + tag rules).
+        // If this fails, delete the newly created form so we do not leave a form
+        // that was intended to have restricted visibility in an open state.
+        try {
+            await syncFormApplicability(form.id, visibility ?? {});
+        } catch (syncError) {
+            try {
+                await checkopsWrapper.deleteForm(form.id);
+            } catch (deleteError) {
+                console.error(
+                    `[forms-create] Compensating delete failed for form ${form.id} after sync error:`,
+                    deleteError
+                );
+            }
+            throw syncError;
+        }
 
         // Enrich UUID-string questions to full objects so the client can parse
         // FormResponseSchema without errors.
         await enrichFormQuestions(form, checkopsWrapper);
 
+        // Attach the visibility object so the create response matches the GET/UPDATE
+        // response shape. The values are taken directly from what we just persisted
+        // rather than re-querying — no extra DB round-trips needed.
+        const visConfig = visibility ?? {};
+        form.visibility = {
+            require_all: visibility?.require_all ?? true,
+            allowedDesignationIds: Array.isArray(visConfig.allowedDesignationIds)
+                ? visConfig.allowedDesignationIds
+                : [],
+            requiresTags: Array.isArray(visConfig.requiresTags)
+                ? visConfig.requiresTags
+                : []
+        };
+
         // Log audit trail
         await logAudit({
-            userId: req.user?.id,
+            userId: req.user?.userId,
             action: 'CREATE',
             entityType: 'checkops_form',
             entityId: form.id,
-            entitySid: form.sid,  // NEW: Human-readable ID
+            entitySid: form.sid,
             changes: { title, sid: form.sid, questionCount: questions.length },
             ipAddress: req.ip || req.headers?.['x-forwarded-for'],
             userAgent: req.headers?.['user-agent']
         });
 
         // Enhanced logging
-        console.log(`✅ Form created via API: ${form.sid} (${form.id}) by user ${req.user?.id || 'anonymous'}`);
+        console.log(`✅ Form created via API: ${form.sid} (${form.id}) by user ${req.user?.userId || 'anonymous'}`);
 
         return {
             status: 201,

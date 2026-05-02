@@ -64,6 +64,11 @@ const handler = async (req, { logger }) => {
             [label, tagId]
         );
 
+        // Guard against the race where the row was deleted between the SELECT and the UPDATE.
+        if (result.rows.length === 0) {
+            return { status: 404, body: { error: 'Tag not found' } };
+        }
+
         const row = result.rows[0];
         const updatedTag = {
             id: row.id,

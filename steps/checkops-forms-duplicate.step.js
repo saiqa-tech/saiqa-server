@@ -51,7 +51,7 @@ const handler = async (req, ctx) => {
         });
 
         await logAudit({
-            userId: req.user?.id,
+            userId: req.user?.userId,
             action: 'CREATE',
             entityType: 'checkops_form',
             entityId: duplicatedForm.id,
@@ -61,7 +61,7 @@ const handler = async (req, ctx) => {
             userAgent: req.headers?.['user-agent'],
         });
 
-        console.log(`✅ Form duplicated via API: ${duplicatedForm.sid} (${duplicatedForm.id}) from ${sourceForm.sid} by user ${req.user?.id || 'anonymous'}`);
+        console.log(`✅ Form duplicated via API: ${duplicatedForm.sid} (${duplicatedForm.id}) from ${sourceForm.sid} by user ${req.user?.userId || 'anonymous'}`);
 
         return {
             status: 201,

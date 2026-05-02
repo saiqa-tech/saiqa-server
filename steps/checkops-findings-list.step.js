@@ -134,9 +134,22 @@ const handler = async (req, ctx) => {
             page = 1,
         } = req.queryParams || {};
 
-        const parsedLimit = Math.min(parseInt(limit, 10), 100);
-        const parsedPage = Math.max(parseInt(page, 10), 1);
+        const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
+        const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
         const parsedOffset = (parsedPage - 1) * parsedLimit;
+
+        // Validate UUID filter params so malformed input returns 400 instead of
+        // a PostgreSQL "invalid input syntax for type uuid" 500.
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (formId && !UUID_RE.test(formId)) {
+            return { status: 400, body: { error: 'formId must be a valid UUID' } };
+        }
+        if (submissionId && !UUID_RE.test(submissionId)) {
+            return { status: 400, body: { error: 'submissionId must be a valid UUID' } };
+        }
+        if (questionId && !UUID_RE.test(questionId)) {
+            return { status: 400, body: { error: 'questionId must be a valid UUID' } };
+        }
 
         // Step 1 — Build the reporting filter for this user
         const filter = await buildReportingFilter(req.user.userId, 'VIEW_FINDING');

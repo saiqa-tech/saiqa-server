@@ -19,6 +19,18 @@
 const { query } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 
+// All 6 actions defined in the designation_permissions CHECK constraint.
+// Any action without an explicit DB row is implicitly denied (deny-by-default).
+// We materialize all 6 here so the admin UI always sees a complete matrix.
+const ALL_ACTIONS = [
+    'SUBMIT_FORM',
+    'VIEW_SUBMISSION',
+    'VIEW_FINDING',
+    'UPDATE_FINDING',
+    'VIEW_REPORT',
+    'MANAGE_FORM',
+];
+
 const config = {
     emits: [],
     name: 'DesignationPermissionsGet',
@@ -49,11 +61,16 @@ const handler = async (req, { logger }) => {
             [designationId]
         );
 
-        const permissions = permsRes.rows.map((row) => ({
-            action: row.action,
-            allowed: row.allowed,
-            scopeType: row.scope_type
-        }));
+        // Build a lookup map so we can materialize deny-by-default rows for
+        // actions that have no explicit DB entry.
+        const permsMap = new Map(permsRes.rows.map((row) => [row.action, row]));
+
+        const permissions = ALL_ACTIONS.map((action) => {
+            const row = permsMap.get(action);
+            return row
+                ? { action, allowed: row.allowed, scopeType: row.scope_type }
+                : { action, allowed: false, scopeType: null };
+        });
 
         return { status: 200, body: { permissions } };
     } catch (error) {

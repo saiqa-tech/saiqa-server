@@ -39,8 +39,8 @@ const handler = async (req, ctx) => {
 
         const { page = 1, limit = 20, search, isActive } = req.queryParams || {};
 
-        const parsedPage = Math.max(1, parseInt(page));
-        const parsedLimit = Math.min(parseInt(limit), 100);
+        const parsedPage = Math.max(1, parseInt(page, 10) || 1);
+        const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
         const offset = (parsedPage - 1) * parsedLimit;
 
         const userId = req.user.userId;
@@ -77,6 +77,9 @@ const handler = async (req, ctx) => {
         }
 
         if (isActive !== undefined) {
+            if (isActive !== 'true' && isActive !== 'false') {
+                return { status: 400, body: { error: 'isActive must be "true" or "false"' } };
+            }
             whereParts.push(`f.is_active = $${paramIndex}`);
             params.push(isActive === 'true');
             paramIndex++;

@@ -59,15 +59,25 @@ const handler = async (req, ctx) => {
         // Clean up form applicability rows now that the form is gone.
         // These live in saiqa-server tables and must be removed manually
         // because there is no FK constraint from form_applicability_* to forms.
-        // Only runs after a confirmed successful deletion (inside the same try block).
-        await query(
-            'DELETE FROM form_applicability_designation_map WHERE form_id = $1',
-            [formId]
-        );
-        await query(
-            'DELETE FROM form_applicability_tag_map WHERE form_id = $1',
-            [formId]
-        );
+        // Wrapped in try/catch because orphaned rows are harmless — they reference
+        // a form that no longer exists and are never returned by any query.
+        // A cleanup failure must NOT override the 200 that the successful deletion
+        // deserves; otherwise the caller believes the form still exists when it is gone.
+        try {
+            await query(
+                'DELETE FROM form_applicability_designation_map WHERE form_id = $1',
+                [formId]
+            );
+            await query(
+                'DELETE FROM form_applicability_tag_map WHERE form_id = $1',
+                [formId]
+            );
+        } catch (cleanupError) {
+            console.error(
+                `[forms-delete] Applicability cleanup failed for deleted form ${formId}:`,
+                cleanupError
+            );
+        }
 
         // Log audit trail
         await logAudit({

@@ -9,10 +9,10 @@
  *
  * No request body required. The flip is always unconditional.
  *
- * Note: toggling a tag inactive does NOT delete existing assignments in
- * entity_tag_map or form_applicability_tag_map. Those records remain and
- * continue to affect scope/form-access logic until they are explicitly
- * removed. The admin should clean up assignments separately if needed.
+ * Note: a tag cannot be deactivated while it is still referenced by
+ * form_applicability_tag_map. That avoids silently changing which forms
+ * are visible or submittable. Existing entity_tag_map assignments are
+ * left untouched.
  *
  * Response (200):
  *   { "tag": { "id", "category", "value", "label", "isActive", "createdAt" } }
@@ -47,6 +47,22 @@ const handler = async (req, { logger }) => {
         }
 
         const oldIsActive = existing.rows[0].is_active;
+
+        if (oldIsActive) {
+            const references = await query(
+                'SELECT 1 FROM form_applicability_tag_map WHERE tag_id = $1 LIMIT 1',
+                [tagId]
+            );
+
+            if (references.rows.length > 0) {
+                return {
+                    status: 409,
+                    body: {
+                        error: 'Cannot deactivate tag while it is still used by one or more forms'
+                    }
+                };
+            }
+        }
 
         const result = await query(
             `UPDATE tag_definitions

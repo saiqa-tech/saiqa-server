@@ -45,8 +45,13 @@ const handler = async (req, ctx) => {
             };
         }
 
-        const parsedPage = Math.max(1, parseInt(page));
-        const parsedLimit = Math.min(parseInt(limit), 100);
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!UUID_RE.test(formId)) {
+            return { status: 400, body: { error: 'formId must be a valid UUID' } };
+        }
+
+        const parsedPage = Math.max(1, parseInt(page, 10) || 1);
+        const parsedLimit = Math.min(Math.max(1, parseInt(limit, 10) || 20), 100);
         const offset = (parsedPage - 1) * parsedLimit;
 
         // Step 1 — Build the reporting filter for this user

@@ -47,6 +47,11 @@ const handler = async (req, ctx) => {
             };
         }
 
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (!UUID_RE.test(id)) {
+            return { status: 400, body: { error: 'Submission ID must be a valid UUID' } };
+        }
+
         // Build the reporting filter before touching any submission data.
         // If the user's designation doesn't have VIEW_SUBMISSION permission,
         // we return 403 immediately without leaking that the record exists.

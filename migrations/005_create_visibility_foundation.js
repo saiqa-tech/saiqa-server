@@ -8,14 +8,14 @@
  *   2. entity_tag_map   — assigns tags to units or users (unified entity model)
  *   3. designation_permissions — per-designation capability rules (allow/deny + scope)
  *
- * Also seeds 15 standard tag definitions and default permission rules.
+ * Also seeds 15 standard tag definitions and example default permission rules
+ * for a standard SAIQA deployment (STORE_EMP, AR_MGR, REGIONAL_MGR, ADMIN).
+ * Designation codes are business-configured; if different codes are used the
+ * seed simply inserts zero permission rows and permissions must be set up
+ * separately via the admin UI or a custom seed script.
  *
- * ⚠️  Pre-flight check before running this migration:
- *     SELECT id, title, code FROM designations;
- *     Verify rows exist and every row has a non-null `code` matching the seed
- *     values below (STORE_EMP, REGIONAL_MGR, ADMIN).  If not, populate
- *     designations first — otherwise the permission seed will silently insert
- *     zero rows and every action will be denied by default.
+ * ⚠️  The permission seed is advisory.  Zero rows inserted is not an error
+ *     when the deployment uses custom designation codes.
  */
 
 const { getClient } = require('../config/database');
@@ -123,10 +123,13 @@ async function up() {
         ON designation_permissions(designation_id);
     `);
 
-    // Seed: default permission rules.
-    // Uses INSERT … SELECT with a VALUES cross-join so that if a designation
-    // with a given code does not exist, no row is inserted (silent, safe).
-    // Codes used: STORE_EMP, AR_MGR, REGIONAL_MGR, ADMIN
+    // Seed: example default permission rules for standard SAIQA deployments.
+    // Uses INSERT … SELECT with a VALUES cross-join keyed on designation code.
+    // Designation codes are not fixed — they are business-configured.  If a
+    // deployment uses different codes, no rows will match and the INSERT inserts
+    // zero rows, which is correct and expected.  Permissions for custom
+    // designations must be configured separately after the migration runs.
+    // ON CONFLICT DO NOTHING makes this safe to re-run.
     await client.query(`
       INSERT INTO designation_permissions (designation_id, action, allowed, scope_type)
       SELECT d.id, v.action, v.allowed, v.scope_type
@@ -147,6 +150,11 @@ async function up() {
         ('REGIONAL_MGR', 'VIEW_FINDING',     true,  'scoped'),
         ('REGIONAL_MGR', 'UPDATE_FINDING',   true,  'scoped'),
         ('REGIONAL_MGR', 'VIEW_REPORT',      true,  'scoped'),
+        ('ADMIN',        'SUBMIT_FORM',      true,  'scoped'),
+        ('ADMIN',        'VIEW_SUBMISSION',  true,  'scoped'),
+        ('ADMIN',        'VIEW_FINDING',     true,  'scoped'),
+        ('ADMIN',        'UPDATE_FINDING',   true,  'scoped'),
+        ('ADMIN',        'VIEW_REPORT',      true,  'scoped'),
         ('ADMIN',        'MANAGE_FORM',      true,  'scoped')
       ) AS v(code, action, allowed, scope_type)
       WHERE d.code = v.code

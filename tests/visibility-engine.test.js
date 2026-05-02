@@ -75,4 +75,19 @@ describe('visibility-engine admin bypass', () => {
 
         expect(result).toEqual({ allow: true, filterType: 'ALL' });
     });
+
+    test('buildReportingFilter denies unknown scope types', async () => {
+        query
+            .mockResolvedValueOnce({
+                rows: [{ role: 'user', designation_id: 'designation-1', unit_id: 'home-1', designation_code: null }],
+            })
+            .mockResolvedValueOnce({
+                rows: [{ designation_code: 'STORE_EMP', allowed: true, scope_type: 'mystery' }],
+            });
+
+        const result = await buildReportingFilter('user-1', 'VIEW_SUBMISSION');
+
+        expect(result).toEqual({ allow: false });
+        expect(getEffectiveScope).not.toHaveBeenCalled();
+    });
 });

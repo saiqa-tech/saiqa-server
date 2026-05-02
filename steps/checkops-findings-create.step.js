@@ -62,9 +62,14 @@ const handler = async (req, ctx) => {
                 `SELECT target_unit_id FROM submissions WHERE ${idCol} = $1`,
                 [submissionId]
             );
-            if (subRes.rows.length > 0) {
-                targetUnitId = subRes.rows[0].target_unit_id;
+            if (subRes.rows.length === 0) {
+                return {
+                    status: 404,
+                    body: { error: 'Submission not found' }
+                };
             }
+
+            targetUnitId = subRes.rows[0].target_unit_id;
         }
 
         const filter = await buildReportingFilter(req.user.userId, 'UPDATE_FINDING');

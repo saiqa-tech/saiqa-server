@@ -64,7 +64,7 @@ const handler = async (req, ctx) => {
             await checkopsWrapper.initialize();
         }
 
-        const { formId, submissionData, targetUnitId } = req.body;
+        const { formId, submissionData, targetUnitId } = req.body || {};
         const userId = req.user.userId;  // set by authenticate middleware
 
         // ── Step 1: Validate targetUnitId ──────────────────────────────────────

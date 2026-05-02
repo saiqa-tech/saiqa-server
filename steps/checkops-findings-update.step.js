@@ -78,15 +78,15 @@ const handler = async (req, ctx) => {
         if (filter.filterType === 'SELF') {
             if (targetUnitId !== null && targetUnitId !== filter.homeUnitId) {
                 return {
-                    status: 403,
-                    body: { error: 'You do not have permission to update this finding.' }
+                    status: 404,
+                    body: { error: 'Finding not found' }
                 };
             }
         } else if (filter.filterType === 'SCOPE') {
             if (targetUnitId !== null && !filter.unitIds.includes(targetUnitId)) {
                 return {
-                    status: 403,
-                    body: { error: 'You do not have permission to update this finding.' }
+                    status: 404,
+                    body: { error: 'Finding not found' }
                 };
             }
         }

@@ -8,7 +8,7 @@
  */
 
 require('dotenv').config();
-const { authenticate } = require('../middleware/auth');
+const { authenticate, adminOnly } = require('../middleware/auth');
 const { setConfig, refreshConfigCache } = require('../utils/config');
 
 const config = {
@@ -17,21 +17,13 @@ const config = {
     type: 'api',
     path: '/api/checkops/config/findings-values',
     method: 'PUT',
-    middleware: [authenticate],
+    middleware: [authenticate, adminOnly],
 };
 
 const handler = async (req, ctx) => {
     try {
         if (process.env.CHECKOPS_ENABLED !== 'true') {
             return { status: 503, body: { error: 'CheckOps is not enabled' } };
-        }
-
-        // This endpoint modifies system-wide config — admin only.
-        if (req.user.role !== 'admin') {
-            return {
-                status: 403,
-                body: { error: 'Admin access required.' }
-            };
         }
 
         const { severities, departments } = req.body ?? {};
