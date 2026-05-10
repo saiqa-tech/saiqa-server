@@ -95,23 +95,15 @@ describe('checkops form write safety', () => {
         expect(logAudit).not.toHaveBeenCalled();
     });
 
-    test('update restores previous requireAll and returns 500 when applicability sync fails', async () => {
-        wrapper.getForm.mockResolvedValue({
+    test('update returns 200 with warning when applicability sync fails (no fake rollback)', async () => {
+        wrapper.updateForm.mockResolvedValueOnce({
             id: '123e4567-e89b-12d3-a456-426614174000',
-            requireAll: false,
+            sid: 'FORM-001',
+            requireAll: true,
         });
-        wrapper.updateForm
-            .mockResolvedValueOnce({
-                id: '123e4567-e89b-12d3-a456-426614174000',
-                sid: 'FORM-001',
-                requireAll: true,
-            })
-            .mockResolvedValueOnce({
-                id: '123e4567-e89b-12d3-a456-426614174000',
-                sid: 'FORM-001',
-                requireAll: false,
-            });
+        enrichFormQuestions.mockResolvedValue(undefined);
         syncFormApplicability.mockRejectedValue(new Error('sync failed'));
+        logAudit.mockResolvedValue(undefined);
 
         const response = await formsUpdateHandler(
             {
@@ -126,8 +118,9 @@ describe('checkops form write safety', () => {
             { logger: { error: jest.fn() } }
         );
 
-        expect(wrapper.getForm).toHaveBeenCalledWith('123e4567-e89b-12d3-a456-426614174000');
-        expect(wrapper.updateForm).toHaveBeenNthCalledWith(1, '123e4567-e89b-12d3-a456-426614174000', {
+        // The form update itself should succeed — only applicability sync failed.
+        expect(wrapper.updateForm).toHaveBeenCalledTimes(1);
+        expect(wrapper.updateForm).toHaveBeenCalledWith('123e4567-e89b-12d3-a456-426614174000', {
             title: 'Updated Form',
             requireAll: true,
         });
@@ -135,17 +128,16 @@ describe('checkops form write safety', () => {
             '123e4567-e89b-12d3-a456-426614174000',
             { require_all: true }
         );
-        expect(wrapper.updateForm).toHaveBeenNthCalledWith(2, '123e4567-e89b-12d3-a456-426614174000', {
-            requireAll: false,
-        });
-        expect(response).toEqual({
-            status: 500,
-            body: {
-                error: 'Form update failed',
-                message: 'sync failed',
-            },
-        });
-        expect(enrichFormQuestions).not.toHaveBeenCalled();
-        expect(logAudit).not.toHaveBeenCalled();
+
+        // No fake rollback — updateForm should NOT be called a second time.
+        // No getForm prefetch needed either (no rollback to prepare for).
+        expect(wrapper.getForm).not.toHaveBeenCalled();
+
+        // Response is 200 with the saved data + a warning, not a 500.
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.id).toBe('123e4567-e89b-12d3-a456-426614174000');
+        expect(response.body.warning).toMatch(/visibility restrictions failed to sync/);
+        expect(response.body.syncError).toBe('sync failed');
     });
 });

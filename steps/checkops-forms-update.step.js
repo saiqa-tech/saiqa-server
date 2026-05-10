@@ -125,41 +125,37 @@ const handler = async (req, ctx) => {
         const { visibility: clientVisibility, ...checkopsUpdates } = processedUpdates;
         const normalizedVisibility =
             clientVisibility && typeof clientVisibility === 'object' ? clientVisibility : {};
-        let previousRequireAll;
+
+        // Step 1: Update the form in CheckOps (title, questions, requireAll, etc.)
+        const updatedForm = await checkopsWrapper.updateForm(formId, {
+            ...checkopsUpdates,
+            ...(hasVisibilityKey && { requireAll: normalizedVisibility.require_all ?? true })
+        });
+
+        // Step 2: Sync form applicability tables, but ONLY when the client explicitly
+        // included a `visibility` key in the request body.
+        // If visibility is absent (e.g. a title-only update), do NOT touch the
+        // applicability tables at all — absence means "leave restrictions as-is",
+        // not "clear all restrictions".
+        //
+        // NOTE: If the form update above succeeds but this sync fails, we return a
+        // partial-failure response. We do NOT attempt a fake rollback because we
+        // cannot atomically undo all the fields that were already written to CheckOps.
+        // The client should display the error and the admin can retry.
+        let applicabilitySyncFailed = false;
+        let syncErrorMessage = null;
         if (hasVisibilityKey) {
-            const existingForm = await checkopsWrapper.getForm(formId);
-            previousRequireAll = existingForm.requireAll ?? true;
-        }
-
-        let updatedForm;
-        try {
-            updatedForm = await checkopsWrapper.updateForm(formId, {
-                ...checkopsUpdates,
-                ...(hasVisibilityKey && { requireAll: normalizedVisibility.require_all ?? true })
-            });
-
-            // Sync form applicability tables, but ONLY when the client explicitly
-            // included a `visibility` key in the request body.
-            // If visibility is absent (e.g. a title-only update), do NOT touch the
-            // applicability tables at all — absence means "leave restrictions as-is",
-            // not "clear all restrictions".
-            if (hasVisibilityKey) {
+            try {
                 await syncFormApplicability(updatedForm.id, normalizedVisibility);
+            } catch (syncError) {
+                applicabilitySyncFailed = true;
+                syncErrorMessage = syncError.message;
+                console.error(
+                    `[forms-update] Form ${formId} updated but applicability sync failed. ` +
+                    `The form's core fields are saved; visibility restrictions may be stale.`,
+                    syncError
+                );
             }
-        } catch (syncOrUpdateError) {
-            if (hasVisibilityKey && updatedForm?.id !== undefined && previousRequireAll !== undefined) {
-                try {
-                    await checkopsWrapper.updateForm(formId, {
-                        requireAll: previousRequireAll,
-                    });
-                } catch (rollbackError) {
-                    console.error(
-                        `[forms-update] Failed to restore requireAll for form ${formId} after applicability sync error:`,
-                        rollbackError
-                    );
-                }
-            }
-            throw syncOrUpdateError;
         }
 
         // Enrich UUID-string questions to full objects so the client can parse
@@ -204,6 +200,18 @@ const handler = async (req, ctx) => {
 
         // Enhanced logging
         console.log(`✅ Form updated via API: ${updatedForm.sid} (${updatedForm.id}) by user ${req.user?.userId || 'anonymous'}`);
+
+        if (applicabilitySyncFailed) {
+            return {
+                status: 200,
+                body: {
+                    success: true,
+                    data: updatedForm,
+                    warning: 'Form saved but visibility restrictions failed to sync. The form\'s core fields are saved; please re-save visibility settings.',
+                    syncError: syncErrorMessage,
+                }
+            };
+        }
 
         return {
             status: 200,
