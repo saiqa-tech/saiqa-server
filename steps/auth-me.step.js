@@ -13,19 +13,20 @@ const config = {
 const handler = async (req, { logger }) => {
   try {
     const result = await query(
-      `SELECT u.*, 
-              un.name as unit_name, 
-              d.title as designation_title
+      `SELECT u.*,
+              un.name  AS unit_name,
+              d.title  AS designation_title,
+              d.level  AS designation_level
        FROM users u
-       LEFT JOIN units un ON u.unit_id = un.id
+       LEFT JOIN units un       ON u.unit_id       = un.id
        LEFT JOIN designations d ON u.designation_id = d.id
        WHERE u.id = $1`,
       [req.user.userId]
     );
 
     if (result.rows.length === 0) {
-      return { 
-        status: 404, 
+      return {
+        status: 404,
         body: { error: 'User not found' }
       };
     }
@@ -41,8 +42,8 @@ const handler = async (req, { logger }) => {
     };
   } catch (error) {
     logger.error('Get current user error:', error);
-    return { 
-      status: 500, 
+    return {
+      status: 500,
       body: { error: 'Internal server error' }
     };
   }

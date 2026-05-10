@@ -5,13 +5,17 @@
 require('dotenv').config();
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { enrichFormQuestions } = require('../lib/checkops-form-enricher');
+const { buildFormVisibility } = require('../lib/checkops-form-visibility');
+const { query } = require('../config/database');
+const { authenticate } = require('../middleware/auth');
 
 const config = {
     emits: [],
     name: 'CheckOpsFormsGet',
     type: 'api',
     path: '/api/checkops/forms/:formId',
-    method: 'GET'
+    method: 'GET',
+    middleware: [authenticate]
 };
 
 const handler = async (req, ctx) => {
@@ -52,6 +56,31 @@ const handler = async (req, ctx) => {
         // Enrich UUID-string questions to full objects so the client can parse
         // FormResponseSchema without errors.
         await enrichFormQuestions(form, checkopsWrapper);
+
+        // Merge applicability table data into the visibility field so
+        // the FormBuilder can load the current configuration when editing.
+        // These fields are stored in saiqa-server tables, not in checkops.
+        const [designationRows, tagRows] = await Promise.all([
+            query(
+                'SELECT designation_id FROM form_applicability_designation_map WHERE form_id = $1',
+                [formId]
+            ),
+            query(
+                `SELECT td.category, td.value
+                 FROM form_applicability_tag_map fatm
+                 JOIN tag_definitions td ON td.id = fatm.tag_id
+                 WHERE fatm.form_id = $1`,
+                [formId]
+            )
+        ]);
+
+        // Attach the saiqa-server-side fields onto the form's visibility object.
+        // After Change 2, form.requireAll is a plain boolean (not form.visibility).
+        form.visibility = buildFormVisibility({
+            requireAll: form.requireAll,
+            designationIds: designationRows.rows.map((r) => r.designation_id),
+            tagEntries: tagRows.rows.map((r) => ({ category: r.category, value: r.value })),
+        });
 
         return {
             status: 200,

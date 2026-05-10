@@ -6,7 +6,10 @@
  */
 
 require('dotenv').config();
+const { authenticate } = require('../middleware/auth');
+const { query } = require('../config/database');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
+const { buildReportingFilter } = require('../lib/visibility-engine');
 
 const config = {
     emits: [],
@@ -14,6 +17,7 @@ const config = {
     type: 'api',
     path: '/api/checkops/forms/:formId/stats',
     method: 'GET',
+    middleware: [authenticate],
 };
 
 const handler = async (req, ctx) => {
@@ -41,19 +45,46 @@ const handler = async (req, ctx) => {
 
         const questionCount = Array.isArray(form.questions) ? form.questions.length : 0;
 
-        // getSubmissionCount requires UUID (form.id) — SID would fail the DB query
-        const submissionCount = await checkopsWrapper.getSubmissionCount({ formId: form.id });
+        // Build the reporting filter — same pattern as checkops-submissions-stats.step.js.
+        // This enforces scope: store employees see only own-store counts, managers see only their scope.
+        const filter = await buildReportingFilter(req.user.userId, 'VIEW_SUBMISSION');
 
-        // Fetch the most recent submission to get lastSubmissionAt
-        // Submission model uses `submittedAt`, not `createdAt`
+        if (!filter.allow) {
+            return {
+                status: 403,
+                body: { error: 'You do not have permission to view submission statistics.' }
+            };
+        }
+
+        // Build scoped WHERE clause against the shared submissions table.
+        // $1 = form UUID.  Scope param follows as $2 when a scope restriction applies.
+        const params = [form.id];
+        let scopeIdx = 2;
+        let scopeClause = '';
+
+        if (filter.filterType === 'SELF') {
+            params.push(filter.homeUnitId);
+            scopeClause = ` AND (s.target_unit_id IS NULL OR s.target_unit_id = $${scopeIdx})`;
+        } else if (filter.filterType === 'SCOPE') {
+            params.push(filter.unitIds);
+            scopeClause = ` AND (s.target_unit_id IS NULL OR s.target_unit_id = ANY($${scopeIdx}::uuid[]))`;
+        }
+
+        const countRes = await query(
+            `SELECT COUNT(*) AS total FROM submissions s WHERE s.form_id = $1${scopeClause}`,
+            params
+        );
+        const submissionCount = parseInt(countRes.rows[0].total, 10);
+
+        // Fetch the most recent submission within scope to get lastSubmissionAt.
         let lastSubmissionAt = null;
         if (submissionCount > 0) {
-            const recentSubmissions = await checkopsWrapper.getSubmissionsByForm(form.id, {
-                limit: 1,
-                offset: 0,
-            });
-            if (Array.isArray(recentSubmissions) && recentSubmissions.length > 0) {
-                lastSubmissionAt = recentSubmissions[0].submittedAt || null;
+            const lastRes = await query(
+                `SELECT submitted_at FROM submissions s WHERE s.form_id = $1${scopeClause} ORDER BY s.submitted_at DESC LIMIT 1`,
+                params
+            );
+            if (lastRes.rows.length > 0) {
+                lastSubmissionAt = lastRes.rows[0].submitted_at || null;
             }
         }
 

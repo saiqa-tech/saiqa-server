@@ -3,15 +3,18 @@
  */
 
 require('dotenv').config();
+const { authenticate, managerOrAdmin } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { logAudit } = require('../utils/audit');
+const { query } = require('../config/database');
 
 const config = {
     emits: [],
     name: 'CheckOpsFormsDelete',
     type: 'api',
     path: '/api/checkops/forms/:formId',
-    method: 'DELETE'
+    method: 'DELETE',
+    middleware: [authenticate, managerOrAdmin]
 };
 
 const handler = async (req, ctx) => {
@@ -53,9 +56,32 @@ const handler = async (req, ctx) => {
 
         const result = await checkopsWrapper.deleteForm(formId);
 
+        // Clean up form applicability rows now that the form is gone.
+        // These live in saiqa-server tables and must be removed manually
+        // because there is no FK constraint from form_applicability_* to forms.
+        // Wrapped in try/catch because orphaned rows are harmless — they reference
+        // a form that no longer exists and are never returned by any query.
+        // A cleanup failure must NOT override the 200 that the successful deletion
+        // deserves; otherwise the caller believes the form still exists when it is gone.
+        try {
+            await query(
+                'DELETE FROM form_applicability_designation_map WHERE form_id = $1',
+                [formId]
+            );
+            await query(
+                'DELETE FROM form_applicability_tag_map WHERE form_id = $1',
+                [formId]
+            );
+        } catch (cleanupError) {
+            console.error(
+                `[forms-delete] Applicability cleanup failed for deleted form ${formId}:`,
+                cleanupError
+            );
+        }
+
         // Log audit trail
         await logAudit({
-            userId: req.user?.id,
+            userId: req.user?.userId,
             action: 'DELETE',
             entityType: 'checkops_form',
             entityId: formId,
@@ -66,7 +92,7 @@ const handler = async (req, ctx) => {
         });
 
         // Enhanced logging
-        console.log(`✅ Form deleted via API: ${formSid || 'unknown'} (${formId}) by user ${req.user?.id || 'anonymous'}`);
+        console.log(`✅ Form deleted via API: ${formSid || 'unknown'} (${formId}) by user ${req.user?.userId || 'anonymous'}`);
 
         return {
             status: 200,

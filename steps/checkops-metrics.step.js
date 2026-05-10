@@ -4,6 +4,7 @@
  */
 
 require('dotenv').config();
+const { authenticate, managerOrAdmin } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 
 const config = {
@@ -11,7 +12,8 @@ const config = {
     name: 'CheckOpsMetrics',
     type: 'api',
     path: '/api/checkops/metrics',
-    method: 'GET'
+    method: 'GET',
+    middleware: [authenticate, managerOrAdmin]
 };
 
 const handler = async (req, ctx) => {

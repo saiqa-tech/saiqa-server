@@ -4,9 +4,11 @@
 
 require('dotenv').config();
 const { authenticate } = require('../middleware/auth');
+const { query } = require('../config/database');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { validateFindingUpdateData } = require('../lib/checkops-finding-validator');
 const { logAudit } = require('../utils/audit');
+const { buildReportingFilter } = require('../lib/visibility-engine');
 
 const config = {
     emits: [],
@@ -34,14 +36,59 @@ const handler = async (req, ctx) => {
             await checkopsWrapper.initialize();
         }
 
-        // Safely extract id from params
-        const id = req.params?.id;
+        const id = req.pathParams?.id;
 
         if (!id) {
             return {
                 status: 400,
                 body: { error: 'Finding ID is required' }
             };
+        }
+
+        // Check permission first.
+        const filter = await buildReportingFilter(req.user.userId, 'UPDATE_FINDING');
+
+        if (!filter.allow) {
+            return {
+                status: 403,
+                body: { error: 'You do not have permission to update findings.' }
+            };
+        }
+
+        // Scope gate: fetch target_unit_id to verify the caller is allowed to edit
+        // this specific finding without revealing its existence until we know they
+        // can access it.
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const idColumn = UUID_RE.test(id) ? 'id' : 'sid';
+        const scopeRes = await query(
+            `SELECT target_unit_id FROM public.findings WHERE ${idColumn} = $1`,
+            [id]
+        );
+
+        if (scopeRes.rows.length === 0) {
+            return {
+                status: 404,
+                body: { error: 'Finding not found' }
+            };
+        }
+
+        const targetUnitId = scopeRes.rows[0].target_unit_id;
+
+        // NULL target_unit_id = legacy row — always visible to authorized viewers.
+        if (filter.filterType === 'SELF') {
+            if (targetUnitId !== null && targetUnitId !== filter.homeUnitId) {
+                return {
+                    status: 404,
+                    body: { error: 'Finding not found' }
+                };
+            }
+        } else if (filter.filterType === 'SCOPE') {
+            if (targetUnitId !== null && !filter.unitIds.includes(targetUnitId)) {
+                return {
+                    status: 404,
+                    body: { error: 'Finding not found' }
+                };
+            }
         }
 
         // Validate update data
@@ -75,7 +122,7 @@ const handler = async (req, ctx) => {
 
         // Log audit trail
         await logAudit({
-            userId: req.user?.id,
+            userId: req.user?.userId,
             action: 'UPDATE',
             entityType: 'checkops_finding',
             entityId: updatedFinding.id,
@@ -85,7 +132,7 @@ const handler = async (req, ctx) => {
             userAgent: req.headers?.['user-agent']
         });
 
-        console.log(`✅ Finding updated: ${updatedFinding.sid} by user ${req.user?.id || 'anonymous'}`);
+        console.log(`✅ Finding updated: ${updatedFinding.sid} by user ${req.user?.userId || 'anonymous'}`);
 
         return {
             status: 200,

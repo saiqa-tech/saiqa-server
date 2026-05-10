@@ -3,6 +3,7 @@
  */
 
 require('dotenv').config();
+const { authenticate, managerOrAdmin } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { logAudit } = require('../utils/audit');
 
@@ -12,6 +13,7 @@ const config = {
     type: 'api',
     path: '/api/checkops/forms/:formId/toggle-status',
     method: 'PATCH',
+    middleware: [authenticate, managerOrAdmin],
 };
 
 const handler = async (req, ctx) => {

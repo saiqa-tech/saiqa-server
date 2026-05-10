@@ -20,20 +20,32 @@ declare module 'motia' {
     'UsersGetAll': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UsersDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UsersCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'UserTagsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'UserTagsGet': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'UserEffectiveScope': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UnitsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UnitsGetById': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UnitsGetAll': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UnitsDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'UnitsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'UnitTagsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'UnitTagsGet': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'TagsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'TagsToggle': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'TagsList': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'TagsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'DesignationsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'DesignationsGetById': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'DesignationsGetAll': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'DesignationsDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'DesignationsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'DesignationPermissionsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'DesignationPermissionsGet': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'ConfigGetByKey': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'ConfigGetAll': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsSubmissionsStats': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsSubmissionsList': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsSubmissionsGet': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsSubmissionsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsQuestionsUsage': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsQuestionsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
@@ -51,6 +63,7 @@ declare module 'motia' {
     'CheckOpsFormsDuplicate': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsFormsDelete': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsFormsCreate': ApiRouteHandler<Record<string, unknown>, unknown, never>
+    'CheckOpsFormAccess': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsFindingsUpdate': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsFindingsStats': ApiRouteHandler<Record<string, unknown>, unknown, never>
     'CheckOpsFindingsList': ApiRouteHandler<Record<string, unknown>, unknown, never>

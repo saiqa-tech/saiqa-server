@@ -8,7 +8,7 @@
  */
 
 require('dotenv').config();
-const { authenticate } = require('../middleware/auth');
+const { authenticate, adminOnly } = require('../middleware/auth');
 const { setConfig, refreshConfigCache } = require('../utils/config');
 
 const config = {
@@ -17,7 +17,7 @@ const config = {
     type: 'api',
     path: '/api/checkops/config/findings-values',
     method: 'PUT',
-    middleware: [authenticate],
+    middleware: [authenticate, adminOnly],
 };
 
 const handler = async (req, ctx) => {

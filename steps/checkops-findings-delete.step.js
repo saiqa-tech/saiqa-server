@@ -5,7 +5,7 @@
  */
 
 require('dotenv').config();
-const { authenticate } = require('../middleware/auth');
+const { authenticate, adminOnly } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { logAudit } = require('../utils/audit');
 
@@ -15,7 +15,7 @@ const config = {
     type: 'api',
     path: '/api/checkops/findings/:id',
     method: 'DELETE',
-    middleware: [authenticate]
+    middleware: [authenticate, adminOnly]
 };
 
 const handler = async (req, ctx) => {
@@ -28,14 +28,6 @@ const handler = async (req, ctx) => {
             };
         }
 
-        // Authorization: Admin only
-        if (!req.user || req.user.role !== 'admin') {
-            return {
-                status: 403,
-                body: { error: 'Insufficient permissions. Admin access required.' }
-            };
-        }
-
         const checkopsWrapper = getCheckOpsWrapper();
 
         // Ensure CheckOps is initialized
@@ -43,8 +35,7 @@ const handler = async (req, ctx) => {
             await checkopsWrapper.initialize();
         }
 
-        // Safely extract id from params
-        const id = req.params?.id;
+        const id = req.pathParams?.id;
 
         if (!id) {
             return {
@@ -61,7 +52,7 @@ const handler = async (req, ctx) => {
 
         // Log audit trail
         await logAudit({
-            userId: req.user.id,
+            userId: req.user.userId,
             action: 'DELETE',
             entityType: 'checkops_finding',
             entityId: finding.id,
@@ -77,7 +68,7 @@ const handler = async (req, ctx) => {
             userAgent: req.headers?.['user-agent']
         });
 
-        console.log(`✅ Finding deleted: ${finding.sid} by admin ${req.user.id}`);
+        console.log(`✅ Finding deleted: ${finding.sid} by admin ${req.user.userId}`);
 
         return {
             status: 200,

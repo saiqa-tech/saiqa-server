@@ -5,6 +5,7 @@
  */
 
 require('dotenv').config();
+const { authenticate, adminOnly } = require('../middleware/auth');
 const { getAllConfigs } = require('../utils/config');
 
 const config = {
@@ -12,19 +13,12 @@ const config = {
     name: 'ConfigGetAll',
     type: 'api',
     path: '/api/config',
-    method: 'GET'
+    method: 'GET',
+    middleware: [authenticate, adminOnly]
 };
 
 const handler = async (req, ctx) => {
     try {
-        // Authorization: Admin only
-        if (!req.user || req.user.role !== 'admin') {
-            return {
-                status: 403,
-                body: { error: 'Insufficient permissions. Admin access required.' }
-            };
-        }
-
         const configs = await getAllConfigs();
 
         return {

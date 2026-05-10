@@ -6,6 +6,7 @@
  */
 
 require('dotenv').config();
+const { authenticate, managerOrAdmin } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { logAudit } = require('../utils/audit');
 
@@ -15,6 +16,7 @@ const config = {
     type: 'api',
     path: '/api/checkops/forms/:formId/duplicate',
     method: 'POST',
+    middleware: [authenticate, managerOrAdmin],
 };
 
 const handler = async (req, ctx) => {
@@ -49,7 +51,7 @@ const handler = async (req, ctx) => {
         });
 
         await logAudit({
-            userId: req.user?.id,
+            userId: req.user?.userId,
             action: 'CREATE',
             entityType: 'checkops_form',
             entityId: duplicatedForm.id,
@@ -59,7 +61,7 @@ const handler = async (req, ctx) => {
             userAgent: req.headers?.['user-agent'],
         });
 
-        console.log(`✅ Form duplicated via API: ${duplicatedForm.sid} (${duplicatedForm.id}) from ${sourceForm.sid} by user ${req.user?.id || 'anonymous'}`);
+        console.log(`✅ Form duplicated via API: ${duplicatedForm.sid} (${duplicatedForm.id}) from ${sourceForm.sid} by user ${req.user?.userId || 'anonymous'}`);
 
         return {
             status: 201,

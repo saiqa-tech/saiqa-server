@@ -7,6 +7,8 @@ const { authenticate } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { validateFindingData } = require('../lib/checkops-finding-validator');
 const { logAudit } = require('../utils/audit');
+const { query } = require('../config/database');
+const { buildReportingFilter } = require('../lib/visibility-engine');
 
 const config = {
     emits: [],
@@ -45,6 +47,56 @@ const handler = async (req, ctx) => {
                 }
             };
         }
+
+        // ── Scope gate ────────────────────────────────────────────────────────
+        // Only allow creating findings for submissions the caller is authorised to see.
+        // This mirrors the scope enforcement in checkops-findings-update.step.js.
+        const submissionId = req.body.submissionId;
+        let targetUnitId = null;
+
+        if (submissionId) {
+            // submissionId can be either a UUID or a SID
+            const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            const idCol = UUID_RE.test(submissionId) ? 'id' : 'sid';
+            const subRes = await query(
+                `SELECT target_unit_id FROM submissions WHERE ${idCol} = $1`,
+                [submissionId]
+            );
+            if (subRes.rows.length === 0) {
+                return {
+                    status: 404,
+                    body: { error: 'Submission not found' }
+                };
+            }
+
+            targetUnitId = subRes.rows[0].target_unit_id;
+        }
+
+        const filter = await buildReportingFilter(req.user.userId, 'UPDATE_FINDING');
+
+        if (!filter.allow) {
+            return {
+                status: 403,
+                body: { error: 'You do not have permission to create findings.' }
+            };
+        }
+
+        // NULL target_unit_id = legacy submission created before Phase 3 — visible to all authorized viewers.
+        if (targetUnitId !== null) {
+            if (filter.filterType === 'SELF' && targetUnitId !== filter.homeUnitId) {
+                return {
+                    status: 403,
+                    body: { error: 'You do not have permission to create findings for this submission.' }
+                };
+            }
+            if (filter.filterType === 'SCOPE' && !filter.unitIds.includes(targetUnitId)) {
+                return {
+                    status: 403,
+                    body: { error: 'You do not have permission to create findings for this submission.' }
+                };
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         // Create finding with user context
         const finding = await checkopsWrapper.createFinding({
