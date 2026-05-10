@@ -41,6 +41,20 @@ describe('visibility-engine admin bypass', () => {
         ]);
     });
 
+    test('checkCapability denies when designation exists but the permission row is missing', async () => {
+        query.mockResolvedValueOnce({
+            rows: [{ designation_code: 'STORE_EMP', allowed: null, scope_type: null }],
+        });
+
+        const result = await checkCapability('designation-1', 'VIEW_REPORT');
+
+        expect(result).toEqual({ allowed: false });
+        expect(query).toHaveBeenCalledWith(expect.stringContaining('FROM designations d'), [
+            'designation-1',
+            'VIEW_REPORT',
+        ]);
+    });
+
     test('getUserScope returns all active units for admin users', async () => {
         query
             .mockResolvedValueOnce({

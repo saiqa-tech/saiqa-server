@@ -1,27 +1,10 @@
 /**
  * Cookie Utilities Test Suite
- * 
- * Tests for URL encoding edge cases and special character handling
- * Run with: node tests/cookie-utils.test.js
+ *
+ * Tests for URL encoding edge cases and special character handling.
  */
 
 const { parseCookies, serializeCookieOptions, createSetCookieHeader } = require('../utils/cookies');
-
-// Simple test runner
-let passedTests = 0;
-let failedTests = 0;
-
-function test(name, fn) {
-  try {
-    fn();
-    console.log(`✅ ${name}`);
-    passedTests++;
-  } catch (error) {
-    console.log(`❌ ${name}`);
-    console.log(`   Error: ${error.message}`);
-    failedTests++;
-  }
-}
 
 function assertEqual(actual, expected, message) {
   if (JSON.stringify(actual) !== JSON.stringify(expected)) {
@@ -34,12 +17,6 @@ function assertTrue(condition, message) {
     throw new Error(message || 'Assertion failed: expected true');
   }
 }
-
-console.log('\n🧪 Running Cookie Utilities Tests...\n');
-console.log('=' + '='.repeat(60) + '\n');
-
-// Test Suite 1: parseCookies()
-console.log('📦 parseCookies() Tests:\n');
 
 test('Parse simple cookie', () => {
   const result = parseCookies('token=abc123');
@@ -117,11 +94,6 @@ test('Ignore malformed cookie (no value)', () => {
   assertTrue(result.validCookie === 'value' && result.anotherValid === 'test');
 });
 
-console.log('\n' + '─'.repeat(60) + '\n');
-
-// Test Suite 2: serializeCookieOptions()
-console.log('⚙️  serializeCookieOptions() Tests:\n');
-
 test('Serialize basic options', () => {
   const result = serializeCookieOptions({
     httpOnly: true,
@@ -162,16 +134,11 @@ test('Serialize with different sameSite values', () => {
   const strict = serializeCookieOptions({ sameSite: 'Strict' });
   const lax = serializeCookieOptions({ sameSite: 'Lax' });
   const none = serializeCookieOptions({ sameSite: 'None' });
-  
+
   assertTrue(strict.includes('SameSite=Strict'));
   assertTrue(lax.includes('SameSite=Lax'));
   assertTrue(none.includes('SameSite=None'));
 });
-
-console.log('\n' + '─'.repeat(60) + '\n');
-
-// Test Suite 3: createSetCookieHeader()
-console.log('🍪 createSetCookieHeader() Tests:\n');
 
 test('Create basic Set-Cookie header', () => {
   const result = createSetCookieHeader('token', 'abc123', {
@@ -246,11 +213,6 @@ test('Create header with quotes in value', () => {
   assertTrue(result.includes('%22')); // URL encoded quote
 });
 
-console.log('\n' + '─'.repeat(60) + '\n');
-
-// Test Suite 4: Round-trip encoding/decoding
-console.log('🔄 Round-trip Encoding Tests:\n');
-
 test('Round-trip: simple value', () => {
   const original = 'simple-value_123';
   const header = createSetCookieHeader('test', original, { path: '/' });
@@ -302,20 +264,3 @@ test('Round-trip: Mixed content', () => {
   const cookies = parseCookies(header.split(';')[0]);
   assertEqual(cookies.info, original);
 });
-
-// Summary
-console.log('\n' + '='.repeat(60));
-console.log('📊 TEST SUMMARY');
-console.log('='.repeat(60));
-console.log(`Total Tests: ${passedTests + failedTests}`);
-console.log(`✅ Passed: ${passedTests}`);
-console.log(`❌ Failed: ${failedTests}`);
-console.log('='.repeat(60) + '\n');
-
-if (failedTests === 0) {
-  console.log('🎉 All tests passed!\n');
-  process.exit(0);
-} else {
-  console.log('⚠️  Some tests failed. Please review.\n');
-  process.exit(1);
-}

@@ -125,18 +125,41 @@ const handler = async (req, ctx) => {
         const { visibility: clientVisibility, ...checkopsUpdates } = processedUpdates;
         const normalizedVisibility =
             clientVisibility && typeof clientVisibility === 'object' ? clientVisibility : {};
-        const updatedForm = await checkopsWrapper.updateForm(formId, {
-            ...checkopsUpdates,
-            ...(hasVisibilityKey && { requireAll: normalizedVisibility.require_all ?? true })
-        });
-
-        // Sync form applicability tables, but ONLY when the client explicitly
-        // included a `visibility` key in the request body.
-        // If visibility is absent (e.g. a title-only update), do NOT touch the
-        // applicability tables at all — absence means "leave restrictions as-is",
-        // not "clear all restrictions".
+        let previousRequireAll;
         if (hasVisibilityKey) {
-            await syncFormApplicability(updatedForm.id, normalizedVisibility);
+            const existingForm = await checkopsWrapper.getForm(formId);
+            previousRequireAll = existingForm.requireAll ?? true;
+        }
+
+        let updatedForm;
+        try {
+            updatedForm = await checkopsWrapper.updateForm(formId, {
+                ...checkopsUpdates,
+                ...(hasVisibilityKey && { requireAll: normalizedVisibility.require_all ?? true })
+            });
+
+            // Sync form applicability tables, but ONLY when the client explicitly
+            // included a `visibility` key in the request body.
+            // If visibility is absent (e.g. a title-only update), do NOT touch the
+            // applicability tables at all — absence means "leave restrictions as-is",
+            // not "clear all restrictions".
+            if (hasVisibilityKey) {
+                await syncFormApplicability(updatedForm.id, normalizedVisibility);
+            }
+        } catch (syncOrUpdateError) {
+            if (hasVisibilityKey && updatedForm?.id !== undefined && previousRequireAll !== undefined) {
+                try {
+                    await checkopsWrapper.updateForm(formId, {
+                        requireAll: previousRequireAll,
+                    });
+                } catch (rollbackError) {
+                    console.error(
+                        `[forms-update] Failed to restore requireAll for form ${formId} after applicability sync error:`,
+                        rollbackError
+                    );
+                }
+            }
+            throw syncOrUpdateError;
         }
 
         // Enrich UUID-string questions to full objects so the client can parse

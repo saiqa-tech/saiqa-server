@@ -30,6 +30,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@saiqa-tech/contracts": "file:../saiqa-contracts",
     "@saiqa-tech/checkops": "^4.0.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",

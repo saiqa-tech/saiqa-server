@@ -103,15 +103,15 @@ const handler = async (req, ctx) => {
         if (filter.filterType === 'SELF') {
             if (row.target_unit_id !== null && row.target_unit_id !== filter.homeUnitId) {
                 return {
-                    status: 403,
-                    body: { error: 'You do not have permission to view this submission.' }
+                    status: 404,
+                    body: { error: 'Submission not found' }
                 };
             }
         } else if (filter.filterType === 'SCOPE') {
             if (row.target_unit_id !== null && !filter.unitIds.includes(row.target_unit_id)) {
                 return {
-                    status: 403,
-                    body: { error: 'You do not have permission to view this submission.' }
+                    status: 404,
+                    body: { error: 'Submission not found' }
                 };
             }
         }

@@ -5,6 +5,7 @@
 require('dotenv').config();
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { enrichFormQuestions } = require('../lib/checkops-form-enricher');
+const { buildFormVisibility } = require('../lib/checkops-form-visibility');
 const { query } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 
@@ -75,11 +76,11 @@ const handler = async (req, ctx) => {
 
         // Attach the saiqa-server-side fields onto the form's visibility object.
         // After Change 2, form.requireAll is a plain boolean (not form.visibility).
-        form.visibility = {
-            require_all: form.requireAll ?? true,
-            allowedDesignationIds: designationRows.rows.map((r) => r.designation_id),
-            requiresTags: tagRows.rows.map((r) => ({ category: r.category, value: r.value }))
-        };
+        form.visibility = buildFormVisibility({
+            requireAll: form.requireAll,
+            designationIds: designationRows.rows.map((r) => r.designation_id),
+            tagEntries: tagRows.rows.map((r) => ({ category: r.category, value: r.value })),
+        });
 
         return {
             status: 200,

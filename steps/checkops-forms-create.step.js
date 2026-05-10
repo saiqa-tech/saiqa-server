@@ -8,6 +8,7 @@ const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { validateFormData } = require('../lib/checkops-validation');
 const { createFormWithQuestionIds } = require('../lib/checkops-question-id-mapper');
 const { enrichFormQuestions } = require('../lib/checkops-form-enricher');
+const { buildFormVisibility } = require('../lib/checkops-form-visibility');
 const { logAudit } = require('../utils/audit');
 const { syncFormApplicability } = require('../lib/form-applicability-sync');
 
@@ -89,15 +90,15 @@ const handler = async (req, ctx) => {
         // response shape. The values are taken directly from what we just persisted
         // rather than re-querying — no extra DB round-trips needed.
         const visConfig = visibility ?? {};
-        form.visibility = {
-            require_all: visibility?.require_all ?? true,
-            allowedDesignationIds: Array.isArray(visConfig.allowedDesignationIds)
+        form.visibility = buildFormVisibility({
+            requireAll: visibility?.require_all,
+            designationIds: Array.isArray(visConfig.allowedDesignationIds)
                 ? visConfig.allowedDesignationIds
                 : [],
-            requiresTags: Array.isArray(visConfig.requiresTags)
+            tagEntries: Array.isArray(visConfig.requiresTags)
                 ? visConfig.requiresTags
-                : []
-        };
+                : [],
+        });
 
         // Log audit trail
         await logAudit({

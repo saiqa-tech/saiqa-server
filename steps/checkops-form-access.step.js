@@ -16,6 +16,7 @@
  */
 
 require('dotenv').config();
+const { FormAccessResponseSchema } = require('@saiqa-tech/contracts');
 const { query } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 const {
@@ -34,6 +35,19 @@ const config = {
     method: 'GET',
     middleware: [authenticate]
 };
+
+function buildFormAccessResponse(overrides = {}) {
+    return FormAccessResponseSchema.parse({
+        canView: true,
+        canSubmit: false,
+        requiresUnitSelection: false,
+        defaultUnitId: null,
+        defaultUnitName: null,
+        eligibleUnits: [],
+        reason: null,
+        ...overrides,
+    });
+}
 
 const handler = async (req, ctx) => {
     try {
@@ -96,11 +110,9 @@ const handler = async (req, ctx) => {
         if (!designationId && !hasAdminAccess) {
             return {
                 status: 200,
-                body: {
-                    canView: true,
-                    canSubmit: false,
+                body: buildFormAccessResponse({
                     reason: 'Your account has no job designation assigned. Contact an administrator.'
-                }
+                })
             };
         }
 
@@ -111,11 +123,9 @@ const handler = async (req, ctx) => {
         if (!capability.allowed) {
             return {
                 status: 200,
-                body: {
-                    canView: true,
-                    canSubmit: false,
+                body: buildFormAccessResponse({
                     reason: 'Your job designation is not permitted to submit forms.'
-                }
+                })
             };
         }
 
@@ -135,11 +145,9 @@ const handler = async (req, ctx) => {
         if (eligibleUnitIds.length === 0) {
             return {
                 status: 200,
-                body: {
-                    canView: true,
-                    canSubmit: false,
+                body: buildFormAccessResponse({
                     reason: 'None of the stores in your scope match this form\'s requirements.'
-                }
+                })
             };
         }
 
@@ -160,7 +168,7 @@ const handler = async (req, ctx) => {
         // Step 9: Return full response.
         return {
             status: 200,
-            body: {
+            body: buildFormAccessResponse({
                 canView: true,
                 canSubmit: entryDecision.canSubmit,
                 requiresUnitSelection: entryDecision.requiresUnitSelection ?? false,
@@ -170,7 +178,7 @@ const handler = async (req, ctx) => {
                     : null,
                 eligibleUnits: entryDecision.eligibleUnits ?? eligibleUnits,
                 reason: null
-            }
+            })
         };
     } catch (error) {
         console.error('CheckOps form access check failed:', error);

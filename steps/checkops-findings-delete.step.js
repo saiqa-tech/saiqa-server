@@ -5,7 +5,7 @@
  */
 
 require('dotenv').config();
-const { authenticate } = require('../middleware/auth');
+const { authenticate, adminOnly } = require('../middleware/auth');
 const { getCheckOpsWrapper } = require('../lib/checkops-wrapper');
 const { logAudit } = require('../utils/audit');
 
@@ -15,7 +15,7 @@ const config = {
     type: 'api',
     path: '/api/checkops/findings/:id',
     method: 'DELETE',
-    middleware: [authenticate]
+    middleware: [authenticate, adminOnly]
 };
 
 const handler = async (req, ctx) => {
@@ -25,14 +25,6 @@ const handler = async (req, ctx) => {
             return {
                 status: 503,
                 body: { error: 'CheckOps is not enabled' }
-            };
-        }
-
-        // Authorization: Admin only
-        if (!req.user || req.user.role !== 'admin') {
-            return {
-                status: 403,
-                body: { error: 'Insufficient permissions. Admin access required.' }
             };
         }
 

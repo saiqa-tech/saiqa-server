@@ -48,6 +48,13 @@ const handler = async (req, ctx) => {
 
         const { formId } = req.queryParams || {};
 
+        // Validate UUID filter param so malformed input returns 400 instead of
+        // a PostgreSQL "invalid input syntax for type uuid" 500.
+        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (formId && !UUID_RE.test(formId)) {
+            return { status: 400, body: { error: 'formId must be a valid UUID' } };
+        }
+
         // Step 1 — Build the reporting filter for this user
         const filter = await buildReportingFilter(req.user.userId, 'VIEW_FINDING');
 
@@ -57,13 +64,6 @@ const handler = async (req, ctx) => {
                 status: 403,
                 body: { error: 'You do not have permission to view finding statistics.' }
             };
-        }
-
-        // Validate UUID filter param so malformed input returns 400 instead of
-        // a PostgreSQL "invalid input syntax for type uuid" 500.
-        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (formId && !UUID_RE.test(formId)) {
-            return { status: 400, body: { error: 'formId must be a valid UUID' } };
         }
 
         // Step 3 — Build parameterised WHERE clause
